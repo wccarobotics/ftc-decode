@@ -74,8 +74,7 @@ public class StarterBotTeleop extends OpMode {
 //    final double LAUNCHER_TARGET_VELOCITY = 1125;
 //    final double LAUNCHER_MIN_VELOCITY = 1075;
 
-    double LAUNCHER_TARGET_VELOCITY = 2400 / 60 * 28;
-    double LAUNCHER_MIN_VELOCITY = LAUNCHER_TARGET_VELOCITY - 50;
+    double LAUNCHER_TARGET_VELOCITY = 2400;
 
 
     // Declare OpMode members.
@@ -84,6 +83,7 @@ public class StarterBotTeleop extends OpMode {
     private DcMotorEx launcher = null;
     private CRServo leftFeeder = null;
     private CRServo rightFeeder = null;
+    private boolean wasPressed;
 
     ElapsedTime feederTimer = new ElapsedTime();
 
@@ -176,6 +176,8 @@ public class StarterBotTeleop extends OpMode {
          */
         rightFeeder.setDirection(DcMotorSimple.Direction.REVERSE);
 
+        wasPressed = false;
+
         /*
          * Tell the driver that initialization is complete.
          */
@@ -217,7 +219,7 @@ public class StarterBotTeleop extends OpMode {
          * queuing a shot.
          */
         if (gamepad1.y) {
-            launcher.setVelocity(LAUNCHER_TARGET_VELOCITY);
+            launcher.setVelocity(LAUNCHER_TARGET_VELOCITY/60 * 28);
         } else if (gamepad1.b) { // stop flywheel
             launcher.setVelocity(STOP_SPEED);
         }
@@ -225,19 +227,23 @@ public class StarterBotTeleop extends OpMode {
         /*
          * Now we call our "Launch" function.
          */
-        if (gamepad1.dpad_up){
-            LAUNCHER_TARGET_VELOCITY += 100 / 60 * 28;
-            if (LAUNCHER_TARGET_VELOCITY > (5500  / 60 * 28)){
-                LAUNCHER_TARGET_VELOCITY = 5500  / 60 * 28;
+        if (gamepad1.dpad_up && !wasPressed){
+            LAUNCHER_TARGET_VELOCITY += 100;
+            wasPressed = true;
+            if (LAUNCHER_TARGET_VELOCITY > (5500)){
+                LAUNCHER_TARGET_VELOCITY = 5500;
             }
         }
-        if (gamepad1.dpad_down){
-            LAUNCHER_TARGET_VELOCITY -= 100 / 60 * 28;
-            if (LAUNCHER_TARGET_VELOCITY < (100  / 60 * 28)){
-                LAUNCHER_TARGET_VELOCITY = 100  / 60 * 28;
+        if (gamepad1.dpad_down && !wasPressed){
+            LAUNCHER_TARGET_VELOCITY -= 100;
+            wasPressed = true;
+            if (LAUNCHER_TARGET_VELOCITY < (100)){
+                LAUNCHER_TARGET_VELOCITY = 100;
             }
         }
-        double LAUNCHER_MIN_VELOCITY = LAUNCHER_TARGET_VELOCITY - 50;
+        if (!(gamepad1.dpad_down || gamepad1.dpad_up)){
+            wasPressed = false;
+        }
         telemetry.addData("LaunchTarget", LAUNCHER_TARGET_VELOCITY);
 
         launch(gamepad1.rightBumperWasPressed());
@@ -277,8 +283,8 @@ public class StarterBotTeleop extends OpMode {
                 }
                 break;
             case SPIN_UP:
-                launcher.setVelocity(LAUNCHER_TARGET_VELOCITY);
-                if (launcher.getVelocity() > LAUNCHER_MIN_VELOCITY) {
+                launcher.setVelocity(LAUNCHER_TARGET_VELOCITY/60 *28);
+                if (launcher.getVelocity() > .95 * LAUNCHER_TARGET_VELOCITY/60 * 28) {
                     launchState = LaunchState.LAUNCH;
                 }
                 break;
