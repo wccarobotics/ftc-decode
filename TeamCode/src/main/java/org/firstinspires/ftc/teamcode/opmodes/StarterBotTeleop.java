@@ -41,6 +41,7 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.PIDFCoefficients;
+import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 /*
@@ -83,8 +84,10 @@ public class StarterBotTeleop extends OpMode {
     private DcMotorEx launcher = null;
     private CRServo leftFeeder = null;
     private CRServo rightFeeder = null;
+    private Servo angler = null;
     private boolean wasPressed;
-
+    private double anglerAngle;
+    double targangle;
     ElapsedTime feederTimer = new ElapsedTime();
 
     /*
@@ -133,6 +136,7 @@ public class StarterBotTeleop extends OpMode {
         launcher = hardwareMap.get(DcMotorEx.class, "launcher");
         leftFeeder = hardwareMap.get(CRServo.class, "left_feeder");
         rightFeeder = hardwareMap.get(CRServo.class, "right_feeder");
+        angler = hardwareMap.get(Servo.class, "angle_servo");
 
         /*
          * To drive forward, most robots need the motor on one side to be reversed,
@@ -168,6 +172,8 @@ public class StarterBotTeleop extends OpMode {
         leftFeeder.setPower(STOP_SPEED);
         rightFeeder.setPower(STOP_SPEED);
 
+        // angler.setPosition(.5);
+
         launcher.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, new PIDFCoefficients(300, 0, 0, 10));
 
         /*
@@ -177,6 +183,7 @@ public class StarterBotTeleop extends OpMode {
         rightFeeder.setDirection(DcMotorSimple.Direction.REVERSE);
 
         wasPressed = false;
+        anglerAngle = 0;
 
         /*
          * Tell the driver that initialization is complete.
@@ -213,6 +220,23 @@ public class StarterBotTeleop extends OpMode {
          * more complex maneuvers.
          */
         arcadeDrive(-gamepad1.left_stick_y, gamepad1.right_stick_x);
+
+        if (gamepad1.dpad_left){
+            anglerAngle +=1;
+        }
+        else if (gamepad1.dpad_right){
+            anglerAngle -=1;
+        }
+        else if (gamepad1.x){
+            anglerAngle = 45;
+        }
+        else if (gamepad1.b) {
+            anglerAngle = 0;
+        }
+        telemetry.addData("angle", anglerAngle);
+        targangle = (anglerAngle/300) + 0.5;
+        telemetry.addData("angle pct", targangle);
+        angler.setPosition(targangle);
 
         /*
          * Here we give the user control of the speed of the launcher motor without automatically
