@@ -227,10 +227,10 @@ public class StarterBotTeleop extends OpMode {
         else if (gamepad1.dpad_right){
             anglerAngle -=1;
         }
-        else if (gamepad1.x){
+        else if (gamepad1.a){
             anglerAngle = 45;
         }
-        else if (gamepad1.b) {
+        else if (gamepad1.x) {
             anglerAngle = 0;
         }
         telemetry.addData("angle", anglerAngle);
