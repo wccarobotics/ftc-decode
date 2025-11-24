@@ -16,18 +16,18 @@ public class PinpiontOdometry {
         odo.setEncoderDirections(GoBildaPinpointDriver.EncoderDirection.REVERSED, GoBildaPinpointDriver.EncoderDirection.REVERSED);
         odo.resetPosAndIMU();
     }
-    public double getX(){
+    public void newUpdateOutNow(){
         odo.update();
+    }
+    public double getX(){
         Pose2D pos = odo.getPosition();
         return pos.getX(DistanceUnit.MM);
     }
     public double getY(){
-        odo.update();
         Pose2D pos = odo.getPosition();
         return pos.getY(DistanceUnit.MM);
     }
     public double getHeading(){
-        odo.update();
         Pose2D pos = odo.getPosition();
         return pos.getHeading(AngleUnit.DEGREES);
     }
