@@ -17,13 +17,13 @@ public class TankDrive {
     public boolean areWeNearlyThereYet;
 
     public void init(HardwareMap hardwareMap) {
-        left_motor = hardwareMap.get(DcMotorEx.class, "left_motor");
+        left_motor = hardwareMap.get(DcMotorEx.class, "left_drive");
         left_motor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         left_motor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         left_motor.setDirection(DcMotorSimple.Direction.REVERSE);
         leftTicksPerRotation = 537.7;
 
-        right_motor = hardwareMap.get(DcMotor.class, "right_motor");
+        right_motor = hardwareMap.get(DcMotor.class, "right_drive");
         right_motor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         right_motor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         rightTicksPerRotation = 537.7;
