@@ -15,6 +15,7 @@ public class TankDrive {
     public double initialDistance;
     public boolean haveWeSetInitialDistance;
     public boolean areWeNearlyThereYet;
+    PinpointOdometry odo = new PinpointOdometry();
 
     public void init(HardwareMap hardwareMap) {
         left_motor = hardwareMap.get(DcMotorEx.class, "left_drive");
@@ -32,6 +33,7 @@ public class TankDrive {
         opModeDistance = 0;
         haveWeSetInitialDistance = false;
         areWeNearlyThereYet = false;
+        odo.init(hardwareMap);
 
     }
     double squareInputWithSign(double input){
@@ -76,6 +78,16 @@ public class TankDrive {
         else {
             haveWeSetInitialDistance = false;
             areWeNearlyThereYet = true;
+        }
+    }
+    public void turnInPlace(double targetDegrees){
+        odo.newUpdateOutNow();
+        double remainingDistance = targetDegrees - odo.getHeading();
+        if ((0>= remainingDistance)&& targetDegrees>0) {
+            drive(0, (remainingDistance / targetDegrees) + .05);
+        }
+        else if ((0 <= remainingDistance)&& targetDegrees<0) {
+            drive(0, -(remainingDistance / targetDegrees) - .05);
         }
     }
 }

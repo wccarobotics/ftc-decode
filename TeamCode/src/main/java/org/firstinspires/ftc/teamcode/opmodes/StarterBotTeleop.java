@@ -45,6 +45,7 @@ import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.mechanisms.Launcher;
+import org.firstinspires.ftc.teamcode.mechanisms.PinpointOdometry;
 import org.firstinspires.ftc.teamcode.mechanisms.TankDrive;
 
 /*
@@ -70,30 +71,11 @@ public class StarterBotTeleop extends OpMode {
 
     // Declare OpMode members.
     private boolean wasPressed;
+    private double homeAngle;
     TankDrive tankDrive = new TankDrive();
     Launcher launcher = new Launcher();
-    /*
-     * TECH TIP: State Machines
-     * We use a "state machine" to control our launcher motor and feeder servos in this program.
-     * The first step of a state machine is creating an enum that captures the different "states"
-     * that our code can be in.
-     * The core advantage of a state machine is that it allows us to continue to loop through all
-     * of our code while only running specific code when it's necessary. We can continuously check
-     * what "State" our machine is in, run the associated code, and when we are done with that step
-     * move on to the next state.
-     * This enum is called the "LaunchState". It reflects the current condition of the shooter
-     * motor and we move through the enum when the user asks our code to fire a shot.
-     * It starts at idle, when the user requests a launch, we enter SPIN_UP where we get the
-     * motor up to speed, once it meets a minimum speed then it starts and then ends the launch process.
-     * We can use higher level code to cycle through these states. But this allows us to write
-     * functions and autonomous routines in a way that avoids loops within loops, and "waits".
-     */
 
-
-    // Setup a variable for each drive wheel to save power level for telemetry
-    double leftPower;
-    double rightPower;
-
+    PinpointOdometry odo = new PinpointOdometry();
     /*
      * Code to run ONCE when the driver hits INIT
      */
@@ -101,6 +83,7 @@ public class StarterBotTeleop extends OpMode {
     public void init() {
         tankDrive.init(hardwareMap);
         launcher.init(hardwareMap);
+        odo.init(hardwareMap);
 
         wasPressed = false;
 
@@ -139,6 +122,7 @@ public class StarterBotTeleop extends OpMode {
          * both motors work to rotate the robot. Combinations of these inputs can be used to create
          * more complex maneuvers.
          */
+        odo.newUpdateOutNow();
         tankDrive.drive(-gamepad1.left_stick_y, gamepad1.right_stick_x);
 
         if (gamepad1.dpad_left){
@@ -186,12 +170,27 @@ public class StarterBotTeleop extends OpMode {
         }
         launcher.updateState();
 
+        if(gamepad1.left_bumper){
+            odo.resetEverything();
+        }
+        if(odo.getX()==0){
+            homeAngle = 0;
+        }
+        else {
+            homeAngle = Math.toDegrees(Math.atan(odo.getY() / odo.getX()));
+        }
+        telemetry.addData("homeangle",homeAngle);
+        if(gamepad1.right_trigger>=.25){
+            tankDrive.turnInPlace(homeAngle);
+        }
+
         /*
          * Show the state and motor powers
          */
         telemetry.addData("State", launcher.getState());
-        telemetry.addData("Motors", "left (%.2f), right (%.2f)", leftPower, rightPower);
         telemetry.addData("motorSpeed", launcher.launcherSpeed() / 28 * 60);
+        telemetry.addData("position","x (%.2f), y (%.2f)", odo.getX(), odo.getY());
+        telemetry.addData("heading", odo.getHeading());
 
     }
 

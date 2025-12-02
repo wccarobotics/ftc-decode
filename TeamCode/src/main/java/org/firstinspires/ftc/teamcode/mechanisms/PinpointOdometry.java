@@ -7,7 +7,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 import org.firstinspires.ftc.teamcode.GoBildaPinpointDriver;
 
-public class PinpiontOdometry {
+public class PinpointOdometry {
     GoBildaPinpointDriver odo;
     public void init(HardwareMap hardwareMap){
         odo = hardwareMap.get(GoBildaPinpointDriver.class,"odo");
@@ -36,5 +36,6 @@ public class PinpiontOdometry {
     }
     public void resetEverything(){
         odo.resetPosAndIMU();
+
     }
 }
