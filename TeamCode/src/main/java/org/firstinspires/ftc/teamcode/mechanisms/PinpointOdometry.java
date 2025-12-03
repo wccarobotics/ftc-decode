@@ -25,11 +25,11 @@ public class PinpointOdometry {
     }
     public double getY(){
         Pose2D pos = odo.getPosition();
-        return pos.getY(DistanceUnit.MM);
+        return -pos.getY(DistanceUnit.MM);
     }
     public double getHeading(){
         Pose2D pos = odo.getPosition();
-        return pos.getHeading(AngleUnit.DEGREES);
+        return -pos.getHeading(AngleUnit.DEGREES);
     }
     public void resetImu(){
         odo.recalibrateIMU();
