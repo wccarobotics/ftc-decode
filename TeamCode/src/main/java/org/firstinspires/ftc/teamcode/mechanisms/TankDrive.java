@@ -82,6 +82,12 @@ public class TankDrive {
     }
     public void turnInPlace(double targetDegrees){
         double remainingDistance = targetDegrees - odo.getHeading();
-        drive(0, (remainingDistance/90));
+        if(remainingDistance > 45){
+            drive(0,1);
+        }
+        if(remainingDistance < -45){
+            drive(0,-1);
+        }
+        drive(0, (remainingDistance/45));
     }
 }

@@ -123,7 +123,7 @@ public class StarterBotTeleop extends OpMode {
          * more complex maneuvers.
          */
         odo.newUpdateOutNow();
-        tankDrive.drive(-gamepad1.left_stick_y, gamepad1.right_stick_x);
+
 
         if (gamepad1.dpad_left){
             launcher.flapIncement(1);
@@ -177,11 +177,15 @@ public class StarterBotTeleop extends OpMode {
             homeAngle = 0;
         }
         else {
-            homeAngle = Math.toDegrees(Math.atan(odo.getY() / odo.getX()));
+            homeAngle = Math.toDegrees(Math.atan(odo.getY() / (odo.getX() - 500)));
         }
         telemetry.addData("homeangle",homeAngle);
         if(gamepad1.right_trigger>=.25){
             tankDrive.turnInPlace(homeAngle);
+        }
+        else
+        {
+            tankDrive.drive(-gamepad1.left_stick_y, gamepad1.right_stick_x);
         }
 
         /*
