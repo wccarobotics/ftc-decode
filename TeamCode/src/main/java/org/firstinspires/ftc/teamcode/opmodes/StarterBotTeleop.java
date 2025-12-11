@@ -181,7 +181,7 @@ public class StarterBotTeleop extends OpMode {
         }
         telemetry.addData("homeangle",homeAngle);
         if(gamepad1.right_trigger>=.25){
-            tankDrive.turnInPlace(homeAngle);
+            tankDrive.turn(homeAngle, -gamepad1.left_stick_y);
         }
         else
         {

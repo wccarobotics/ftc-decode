@@ -80,7 +80,10 @@ public class TankDrive {
             areWeNearlyThereYet = true;
         }
     }
-    public void turnInPlace(double targetDegrees){
+    public void turn(double targetDegrees){
+        turn(targetDegrees, 0);
+    }
+    public void turn(double targetDegrees, double forward){
         double remainingDistance = targetDegrees - odo.getHeading();
         if(remainingDistance > 45){
             drive(0,1);
@@ -88,6 +91,6 @@ public class TankDrive {
         if(remainingDistance < -45){
             drive(0,-1);
         }
-        drive(0, (remainingDistance/45));
+        drive(forward, (remainingDistance/45));
     }
 }
