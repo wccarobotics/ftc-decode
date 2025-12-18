@@ -11,10 +11,13 @@ public class RevIMU {
     private IMU imu;
     public void init(HardwareMap hardwareMap){
         imu = hardwareMap.get(IMU.class, "imu");
-        RevHubOrientationOnRobot RevOrientation = new RevHubOrientationOnRobot(RevHubOrientationOnRobot.LogoFacingDirection.UP, RevHubOrientationOnRobot.UsbFacingDirection.RIGHT);
+        RevHubOrientationOnRobot RevOrientation = new RevHubOrientationOnRobot(RevHubOrientationOnRobot.LogoFacingDirection.UP, RevHubOrientationOnRobot.UsbFacingDirection.BACKWARD);
         imu.initialize(new IMU.Parameters(RevOrientation));
     }
     public double heading(AngleUnit angleUnit){
         return imu.getRobotYawPitchRollAngles().getYaw(angleUnit);
+    }
+    public void reset(){
+        imu.resetYaw();
     }
 }
