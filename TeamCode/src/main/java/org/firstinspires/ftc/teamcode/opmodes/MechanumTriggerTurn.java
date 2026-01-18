@@ -16,7 +16,7 @@ public class MechanumTriggerTurn extends OpMode {
         IMU.init(hardwareMap);
     }
     public void loop(){
-        mechanumDrive.driveFieldRelative(-gamepad1.left_stick_y, gamepad1.left_stick_x,(gamepad1.right_trigger-gamepad1.left_trigger));
+        mechanumDrive.driveFieldRelative(mechanumDrive.squareInputWithSign(-gamepad1.left_stick_y), mechanumDrive.squareInputWithSign(gamepad1.left_stick_x),mechanumDrive.squareInputWithSign(gamepad1.right_trigger-gamepad1.left_trigger));
         if(gamepad1.rightBumperWasPressed()){
             IMU.reset();
         }

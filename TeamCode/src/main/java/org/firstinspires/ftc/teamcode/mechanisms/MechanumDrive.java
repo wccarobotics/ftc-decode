@@ -13,12 +13,16 @@ public class MechanumDrive {
     public void init(HardwareMap hardwareMap){
         frontLeftMotor = hardwareMap.get(DcMotor.class, "left_front_drive");
         frontLeftMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        frontLeftMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         backLeftMotor = hardwareMap.get(DcMotor.class, "left_back_drive");
         backLeftMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        backLeftMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         frontRightMotor = hardwareMap.get(DcMotor.class,"right_front_drive");
         frontRightMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        frontRightMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         backRightMotor = hardwareMap.get(DcMotor.class, "right_back_drive");
         backRightMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        backRightMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
         frontLeftMotor.setDirection(DcMotor.Direction.REVERSE);
         backLeftMotor.setDirection(DcMotor.Direction.REVERSE);
@@ -55,5 +59,12 @@ public class MechanumDrive {
         double newStrafe = r * Math.cos(theta);
 
         this.drive(newForward, newStrafe, turn);
+    }
+    public double squareInputWithSign(double input){
+        double output = input * input;
+        if(input < 0){
+            output *= -1;
+        }
+        return output;
     }
 }
