@@ -31,9 +31,13 @@ import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
+
+import org.firstinspires.ftc.teamcode.mechanisms.MechanumDrive;
+import org.firstinspires.ftc.teamcode.mechanisms.RevIMU;
 
 /*
  * This file includes a teleop (driver-controlled) file for the goBILDA® Robot in 3 Days for the
@@ -43,7 +47,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 @TeleOp(name = "DECODE Ri3D", group = "StarterBot")
 //@Disabled
 public class RobotIn3Days extends OpMode {
-    final double FEED_TIME_SECONDS = 0.80; //The feeder servos run this long when a shot is requested.
+    final double FEED_TIME_SECONDS = 1.6; //The feeder servos run this long when a shot is requested.
     final double STOP_SPEED = 0.0; //We send this power to the servos when we want them to stop.
     final double FULL_SPEED = 1.0;
 
@@ -56,8 +60,8 @@ public class RobotIn3Days extends OpMode {
     double launcherTarget = LAUNCHER_CLOSE_TARGET_VELOCITY; //These variables allow
     double launcherMin = LAUNCHER_CLOSE_MIN_VELOCITY;
 
-    final double LEFT_POSITION = 0.2962; //the left and right position for the diverter servo
-    final double RIGHT_POSITION = 0;
+    final double LEFT_POSITION = .35; //the left and right position for the diverter servo
+    final double RIGHT_POSITION = .64;
 
     // Declare OpMode members.
     private DcMotor leftFrontDrive = null;
@@ -73,7 +77,8 @@ public class RobotIn3Days extends OpMode {
 
     ElapsedTime leftFeederTimer = new ElapsedTime();
     ElapsedTime rightFeederTimer = new ElapsedTime();
-
+    MechanumDrive mechanumDrive = new MechanumDrive();
+    RevIMU IMU = new RevIMU();
 
     private enum LaunchState {
         IDLE,
@@ -118,16 +123,15 @@ public class RobotIn3Days extends OpMode {
         leftLaunchState = LaunchState.IDLE;
         rightLaunchState = LaunchState.IDLE;
 
-        leftFrontDrive = hardwareMap.get(DcMotor.class, "left_front_drive");
-        rightFrontDrive = hardwareMap.get(DcMotor.class, "right_front_drive");
-        leftBackDrive = hardwareMap.get(DcMotor.class, "left_back_drive");
-        rightBackDrive = hardwareMap.get(DcMotor.class, "right_back_drive");
+        mechanumDrive.init(hardwareMap);
+        IMU.init(hardwareMap);
         leftLauncher = hardwareMap.get(DcMotorEx.class, "left_flywheel");
         rightLauncher = hardwareMap.get(DcMotorEx.class, "right_flywheel");
         intake = hardwareMap.get(DcMotor.class, "intake");
         leftFeeder = hardwareMap.get(CRServo.class, "left_feeder");
         rightFeeder = hardwareMap.get(CRServo.class, "right_feeder");
         diverter = hardwareMap.get(Servo.class, "diverter");
+
 
         /*
          * To drive forward, most robots need the motor on one side to be reversed,
@@ -136,10 +140,6 @@ public class RobotIn3Days extends OpMode {
          * Note: The settings here assume direct drive on left and right wheels. Gear
          * Reduction or 90 Deg drives may require direction flips
          */
-        leftFrontDrive.setDirection(DcMotor.Direction.REVERSE);
-        rightFrontDrive.setDirection(DcMotor.Direction.FORWARD);
-        leftBackDrive.setDirection(DcMotor.Direction.REVERSE);
-        rightBackDrive.setDirection(DcMotor.Direction.FORWARD);
 
         leftLauncher.setDirection(DcMotorSimple.Direction.REVERSE);
 
@@ -153,10 +153,7 @@ public class RobotIn3Days extends OpMode {
          * slow down much faster when it is coasting. This creates a much more controllable
          * drivetrain. As the robot stops much quicker.
          */
-        leftFrontDrive.setZeroPowerBehavior(BRAKE);
-        rightFrontDrive.setZeroPowerBehavior(BRAKE);
-        leftBackDrive.setZeroPowerBehavior(BRAKE);
-        rightBackDrive.setZeroPowerBehavior(BRAKE);
+
         leftLauncher.setZeroPowerBehavior(BRAKE);
         rightLauncher.setZeroPowerBehavior(BRAKE);
 
@@ -201,8 +198,10 @@ public class RobotIn3Days extends OpMode {
     @Override
     public void loop() {
 
-        mecanumDrive(-gamepad1.left_stick_y, gamepad1.left_stick_x, gamepad1.right_stick_x);
-
+        mechanumDrive.driveFieldRelative(mechanumDrive.squareInputWithSign(-gamepad1.left_stick_y), mechanumDrive.squareInputWithSign(gamepad1.left_stick_x),mechanumDrive.squareInputWithSign(gamepad1.right_trigger-gamepad1.left_trigger));
+        if(gamepad1.leftStickButtonWasPressed()){
+            IMU.reset();
+        }
         /*
          * Here we give the user control of the speed of the launcher motor without automatically
          * queuing a shot.
@@ -224,8 +223,16 @@ public class RobotIn3Days extends OpMode {
                 case RIGHT:
                     diverterDirection = DiverterDirection.LEFT;
                     diverter.setPosition(LEFT_POSITION);
+
                     break;
             }
+        }
+
+        if (gamepad1.dpadLeftWasPressed()) {
+            diverter.setPosition(diverter.getPosition() - 0.05);
+        }
+        if (gamepad1.dpadRightWasPressed()) {
+            diverter.setPosition(diverter.getPosition() + 0.05);
         }
 
         if (gamepad1.aWasPressed()){
@@ -269,6 +276,7 @@ public class RobotIn3Days extends OpMode {
         telemetry.addData("launch distance", launcherDistance);
         telemetry.addData("Left Launcher Velocity", leftLauncher.getVelocity());
         telemetry.addData("Right Launcher Velocity", rightLauncher.getVelocity());
+        telemetry.addData("Diverter position", diverter.getPosition());
 
     }
 

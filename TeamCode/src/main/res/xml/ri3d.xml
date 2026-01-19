@@ -5,7 +5,7 @@
             <goBILDA5202SeriesMotor name="right_flywheel" port="0" />
             <goBILDA5202SeriesMotor name="left_flywheel" port="1" />
             <goBILDA5202SeriesMotor name="intake" port="2" />
-            <ServoFullRange name="diverter" port="0" />
+            <Servo name="diverter" port="0" />
             <ContinuousRotationServo name="right_feeder" port="2" />
         </LynxModule>
         <LynxModule name="Control Hub" port="173">
