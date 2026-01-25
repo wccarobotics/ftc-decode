@@ -125,9 +125,8 @@ public class RobotIn3Days extends OpMode {
         leftLaunchState = LaunchState.IDLE;
         rightLaunchState = LaunchState.IDLE;
 
-        odo.init(hardwareMap);
         mechanumDrive.init(hardwareMap, odo);
-
+        odo.init(hardwareMap);
         leftLauncher = hardwareMap.get(DcMotorEx.class, "left_flywheel");
         rightLauncher = hardwareMap.get(DcMotorEx.class, "right_flywheel");
         intake = hardwareMap.get(DcMotor.class, "intake");
@@ -218,12 +217,12 @@ public class RobotIn3Days extends OpMode {
             else if(Math.abs(homeAngle)<45){
                 mechanumDrive.driveFieldRelative(0,0, remainingDistance/45);
             }
-            else {
-                mechanumDrive.driveFieldRelative(mechanumDrive.squareInputWithSign(-gamepad1.left_stick_y), mechanumDrive.squareInputWithSign(gamepad1.left_stick_x), mechanumDrive.squareInputWithSign(gamepad1.right_trigger - gamepad1.left_trigger));
-            }
             if (gamepad1.leftStickButtonWasPressed()) {
                 odo.resetImu();
             }
+        }
+        else {
+            mechanumDrive.driveFieldRelative(mechanumDrive.squareInputWithSign(-gamepad1.left_stick_y), mechanumDrive.squareInputWithSign(gamepad1.left_stick_x), mechanumDrive.squareInputWithSign(gamepad1.right_trigger - gamepad1.left_trigger));
         }
         /*
          * Here we give the user control of the speed of the launcher motor without automatically
