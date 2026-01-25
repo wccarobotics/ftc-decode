@@ -37,6 +37,7 @@ import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.mechanisms.MechanumDrive;
+import org.firstinspires.ftc.teamcode.mechanisms.PinpointOdometry;
 import org.firstinspires.ftc.teamcode.mechanisms.RevIMU;
 
 /*
@@ -62,6 +63,7 @@ public class RobotIn3Days extends OpMode {
 
     final double LEFT_POSITION = .35; //the left and right position for the diverter servo
     final double RIGHT_POSITION = .64;
+    double homeAngle;
 
     // Declare OpMode members.
     private DcMotor leftFrontDrive = null;
@@ -78,7 +80,7 @@ public class RobotIn3Days extends OpMode {
     ElapsedTime leftFeederTimer = new ElapsedTime();
     ElapsedTime rightFeederTimer = new ElapsedTime();
     MechanumDrive mechanumDrive = new MechanumDrive();
-    RevIMU IMU = new RevIMU();
+    PinpointOdometry odo = new PinpointOdometry();
 
     private enum LaunchState {
         IDLE,
@@ -123,8 +125,9 @@ public class RobotIn3Days extends OpMode {
         leftLaunchState = LaunchState.IDLE;
         rightLaunchState = LaunchState.IDLE;
 
-        mechanumDrive.init(hardwareMap);
-        IMU.init(hardwareMap);
+        odo.init(hardwareMap);
+        mechanumDrive.init(hardwareMap, odo);
+
         leftLauncher = hardwareMap.get(DcMotorEx.class, "left_flywheel");
         rightLauncher = hardwareMap.get(DcMotorEx.class, "right_flywheel");
         intake = hardwareMap.get(DcMotor.class, "intake");
@@ -197,10 +200,30 @@ public class RobotIn3Days extends OpMode {
      */
     @Override
     public void loop() {
-
-        mechanumDrive.driveFieldRelative(mechanumDrive.squareInputWithSign(-gamepad1.left_stick_y), mechanumDrive.squareInputWithSign(gamepad1.left_stick_x),mechanumDrive.squareInputWithSign(gamepad1.right_trigger-gamepad1.left_trigger));
-        if(gamepad1.leftStickButtonWasPressed()){
-            IMU.reset();
+        if(odo.getX()==0){
+            homeAngle = 0;
+        }
+        else {
+            homeAngle = Math.toDegrees(Math.atan(odo.getY() / (odo.getX() - 500)));
+        }
+        telemetry.addData("homeangle",homeAngle);
+        if(gamepad1.right_stick_button) {
+            double remainingDistance = homeAngle - odo.getHeading();
+            if (remainingDistance > 45) {
+                mechanumDrive.driveFieldRelative(0, 0, 1);
+            }
+            if (remainingDistance < -45) {
+                mechanumDrive.driveFieldRelative(0, 0, -1);
+            }
+            else if(Math.abs(homeAngle)<45){
+                mechanumDrive.driveFieldRelative(0,0, remainingDistance/45);
+            }
+            else {
+                mechanumDrive.driveFieldRelative(mechanumDrive.squareInputWithSign(-gamepad1.left_stick_y), mechanumDrive.squareInputWithSign(gamepad1.left_stick_x), mechanumDrive.squareInputWithSign(gamepad1.right_trigger - gamepad1.left_trigger));
+            }
+            if (gamepad1.leftStickButtonWasPressed()) {
+                odo.resetImu();
+            }
         }
         /*
          * Here we give the user control of the speed of the launcher motor without automatically
@@ -262,7 +285,6 @@ public class RobotIn3Days extends OpMode {
                     break;
             }
         }
-
         /*
          * Now we call our "Launch" function.
          */

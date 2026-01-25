@@ -8,9 +8,9 @@ import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 
 public class MechanumDrive {
     private DcMotor frontLeftMotor, backLeftMotor, frontRightMotor, backRightMotor;
-    RevIMU IMU = new RevIMU();
+    PinpointOdometry odo;
 
-    public void init(HardwareMap hardwareMap){
+    public void init(HardwareMap hardwareMap, PinpointOdometry odo){
         frontLeftMotor = hardwareMap.get(DcMotor.class, "left_front_drive");
         frontLeftMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         frontLeftMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
@@ -27,7 +27,7 @@ public class MechanumDrive {
         frontLeftMotor.setDirection(DcMotor.Direction.REVERSE);
         backLeftMotor.setDirection(DcMotor.Direction.REVERSE);
 
-        IMU.init(hardwareMap);
+        this.odo = odo;
     }
     public void drive(double forward, double strafe, double turn){
         double frontLeftPower = forward + strafe + turn;
@@ -53,7 +53,7 @@ public class MechanumDrive {
         double theta = Math.atan2(forward, strafe);
         double r = Math.hypot(strafe, forward);
 
-        theta = AngleUnit.normalizeRadians(theta - IMU.heading(AngleUnit.RADIANS));
+        theta = AngleUnit.normalizeRadians(theta - (odo.getHeadingRadians())-Math.toRadians(45));
 
         double newForward = r * Math.sin(theta);
         double newStrafe = r * Math.cos(theta);

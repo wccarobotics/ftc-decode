@@ -11,7 +11,7 @@ public class PinpointOdometry {
     GoBildaPinpointDriver odo;
     public void init(HardwareMap hardwareMap){
         odo = hardwareMap.get(GoBildaPinpointDriver.class,"odo");
-        odo.setOffsets(-59.1, -120.7, DistanceUnit.MM);
+        odo.setOffsets(17, -200, DistanceUnit.MM);
         odo.setEncoderResolution(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_4_BAR_POD);
         odo.setEncoderDirections(GoBildaPinpointDriver.EncoderDirection.REVERSED, GoBildaPinpointDriver.EncoderDirection.REVERSED);
         odo.resetPosAndIMU();
@@ -30,6 +30,10 @@ public class PinpointOdometry {
     public double getHeading(){
         Pose2D pos = odo.getPosition();
         return -pos.getHeading(AngleUnit.DEGREES);
+    }
+    public double getHeadingRadians(){
+        Pose2D pos = odo.getPosition();
+        return -pos.getHeading(AngleUnit.RADIANS);
     }
     public void resetImu(){
         odo.recalibrateIMU();
