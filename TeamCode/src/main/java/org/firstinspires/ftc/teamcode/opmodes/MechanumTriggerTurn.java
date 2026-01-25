@@ -5,14 +5,18 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.IMU;
 
 import org.firstinspires.ftc.teamcode.mechanisms.MechanumDrive;
+import org.firstinspires.ftc.teamcode.mechanisms.PinpointOdometry;
 import org.firstinspires.ftc.teamcode.mechanisms.RevIMU;
 
 @TeleOp
 public class MechanumTriggerTurn extends OpMode {
     MechanumDrive mechanumDrive = new MechanumDrive();
+
+    PinpointOdometry odo = new PinpointOdometry();
     RevIMU IMU = new RevIMU();
     public void init(){
-        mechanumDrive.init(hardwareMap);
+        odo.init(hardwareMap);
+        mechanumDrive.init(hardwareMap, odo);
         IMU.init(hardwareMap);
     }
     public void loop(){
