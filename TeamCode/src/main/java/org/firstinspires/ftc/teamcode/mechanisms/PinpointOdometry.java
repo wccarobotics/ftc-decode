@@ -13,8 +13,9 @@ public class PinpointOdometry {
         odo = hardwareMap.get(GoBildaPinpointDriver.class,"odo");
         odo.setOffsets(17, -200, DistanceUnit.MM);
         odo.setEncoderResolution(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_4_BAR_POD);
-        odo.setEncoderDirections(GoBildaPinpointDriver.EncoderDirection.REVERSED, GoBildaPinpointDriver.EncoderDirection.REVERSED);
-        odo.resetPosAndIMU();
+        odo.setEncoderDirections(GoBildaPinpointDriver.EncoderDirection.REVERSED, GoBildaPinpointDriver.EncoderDirection.FORWARD);
+        //odo.setPosition(new Pose2D(DistanceUnit.MM, 0, 0, AngleUnit.DEGREES, -39));
+        resetEverything();
     }
     public void newUpdateOutNow(){
         odo.update();
@@ -29,17 +30,19 @@ public class PinpointOdometry {
     }
     public double getHeading(){
         Pose2D pos = odo.getPosition();
-        return -pos.getHeading(AngleUnit.DEGREES);
+        return pos.getHeading(AngleUnit.DEGREES);
     }
     public double getHeadingRadians(){
         Pose2D pos = odo.getPosition();
-        return -pos.getHeading(AngleUnit.RADIANS);
+        return pos.getHeading(AngleUnit.RADIANS);
     }
     public void resetImu(){
-        odo.recalibrateIMU();
+        odo.setHeading(0,AngleUnit.DEGREES);
     }
     public void resetEverything(){
-        odo.resetPosAndIMU();
+        odo.setPosition(new Pose2D(DistanceUnit.MM, 0, 0, AngleUnit.DEGREES, -39));
+        //odo.setPosition(new Pose2D(DistanceUnit.MM, 0, 0, AngleUnit.DEGREES, 0));
+        //odo.resetPosAndIMU();
 
     }
 }

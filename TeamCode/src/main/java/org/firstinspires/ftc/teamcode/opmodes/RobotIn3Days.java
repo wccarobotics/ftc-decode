@@ -199,31 +199,37 @@ public class RobotIn3Days extends OpMode {
      */
     @Override
     public void loop() {
+        odo.newUpdateOutNow();
         if(odo.getX()==0){
             homeAngle = 0;
         }
         else {
-            homeAngle = Math.toDegrees(Math.atan(odo.getY() / (odo.getX() - 500)));
+            //homeAngle = -Math.toDegrees(Math.atan((odo.getY()-300) / ((odo.getX()-300))));
+            homeAngle = Math.toDegrees(Math.atan((odo.getY()) / ((odo.getX()))));
         }
         telemetry.addData("homeangle",homeAngle);
+        telemetry.addData("heading", odo.getHeading());
+        telemetry.addData("x", odo.getX());
+        telemetry.addData("y", odo.getY());
         if(gamepad1.right_stick_button) {
             double remainingDistance = homeAngle - odo.getHeading();
             if (remainingDistance > 45) {
-                mechanumDrive.driveFieldRelative(0, 0, 1);
-            }
-            if (remainingDistance < -45) {
                 mechanumDrive.driveFieldRelative(0, 0, -1);
             }
-            else if(Math.abs(homeAngle)<45){
-                mechanumDrive.driveFieldRelative(0,0, remainingDistance/45);
+            if (remainingDistance < -45) {
+                mechanumDrive.driveFieldRelative(0, 0, 1);
             }
-            if (gamepad1.leftStickButtonWasPressed()) {
-                odo.resetImu();
+            else if(Math.abs(homeAngle)<45){
+                mechanumDrive.driveFieldRelative(0,0, -remainingDistance/45);
             }
         }
         else {
             mechanumDrive.driveFieldRelative(mechanumDrive.squareInputWithSign(-gamepad1.left_stick_y), mechanumDrive.squareInputWithSign(gamepad1.left_stick_x), mechanumDrive.squareInputWithSign(gamepad1.right_trigger - gamepad1.left_trigger));
         }
+        if (gamepad1.leftStickButtonWasPressed()) {
+            odo.resetEverything();
+        }
+
         /*
          * Here we give the user control of the speed of the launcher motor without automatically
          * queuing a shot.
@@ -298,6 +304,7 @@ public class RobotIn3Days extends OpMode {
         telemetry.addData("Left Launcher Velocity", leftLauncher.getVelocity());
         telemetry.addData("Right Launcher Velocity", rightLauncher.getVelocity());
         telemetry.addData("Diverter position", diverter.getPosition());
+        telemetry.addData("Intake state", intakeState);
 
     }
 
