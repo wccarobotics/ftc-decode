@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.opmodes;
 
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.IMU;
@@ -9,6 +10,7 @@ import org.firstinspires.ftc.teamcode.mechanisms.PinpointOdometry;
 import org.firstinspires.ftc.teamcode.mechanisms.RevIMU;
 
 @TeleOp
+@Disabled
 public class MechanumTriggerTurn extends OpMode {
     MechanumDrive mechanumDrive = new MechanumDrive();
 

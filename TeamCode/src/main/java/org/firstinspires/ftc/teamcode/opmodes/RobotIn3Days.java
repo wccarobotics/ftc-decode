@@ -25,20 +25,23 @@ package org.firstinspires.ftc.teamcode.opmodes;
 
 import static com.qualcomm.robotcore.hardware.DcMotor.ZeroPowerBehavior.BRAKE;
 
+import com.bylazar.telemetry.PanelsTelemetry;
+import com.bylazar.telemetry.TelemetryManager;
+import com.pedropathing.follower.Follower;
+import com.pedropathing.geometry.Pose;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
-import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.mechanisms.MechanumDrive;
 import org.firstinspires.ftc.teamcode.mechanisms.PinpointOdometry;
-import org.firstinspires.ftc.teamcode.mechanisms.RevIMU;
+import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
 /*
  * This file includes a teleop (driver-controlled) file for the goBILDA® Robot in 3 Days for the
@@ -81,6 +84,8 @@ public class RobotIn3Days extends OpMode {
     ElapsedTime rightFeederTimer = new ElapsedTime();
     MechanumDrive mechanumDrive = new MechanumDrive();
     PinpointOdometry odo = new PinpointOdometry();
+    private Follower follower;
+    private TelemetryManager telemetryM;
 
     private enum LaunchState {
         IDLE,
@@ -109,7 +114,16 @@ public class RobotIn3Days extends OpMode {
         FAR;
     }
 
+
     private LauncherDistance launcherDistance = LauncherDistance.CLOSE;
+
+    private enum Alliance{
+        BLUE,
+        RED
+    }
+    private Alliance currentAlliance = Alliance.BLUE;
+
+    boolean usePedroPathing = true;
 
     // Setup a variable for each drive wheel to save power level for telemetry
     double leftFrontPower;
@@ -125,15 +139,46 @@ public class RobotIn3Days extends OpMode {
         leftLaunchState = LaunchState.IDLE;
         rightLaunchState = LaunchState.IDLE;
 
-        mechanumDrive.init(hardwareMap, odo);
-        odo.init(hardwareMap);
+
+
+        /*
+         * Tell the driver that initialization is complete.
+         */
+        telemetry.addData("Status", "Initialized");
+    }
+
+    /*
+     * Code to run REPEATEDLY after the driver hits INIT, but before they hit START
+     */
+    @Override
+    public void init_loop() {
+        if (gamepad1.yWasPressed()){
+            if (currentAlliance == Alliance.BLUE){
+                currentAlliance = Alliance.RED;
+            }
+            else {
+                currentAlliance = Alliance.BLUE;
+            }
+        }
+        telemetry.addData("Alliance", currentAlliance);
+        if (gamepad1.aWasPressed()){
+            usePedroPathing = !usePedroPathing;
+        }
+        telemetry.addData("Use Pedro Pathing", usePedroPathing);
+    }
+
+    /*
+     * Code to run ONCE when the driver hits START
+     */
+    @Override
+    public void start() {
+
         leftLauncher = hardwareMap.get(DcMotorEx.class, "left_flywheel");
         rightLauncher = hardwareMap.get(DcMotorEx.class, "right_flywheel");
         intake = hardwareMap.get(DcMotor.class, "intake");
         leftFeeder = hardwareMap.get(CRServo.class, "left_feeder");
         rightFeeder = hardwareMap.get(CRServo.class, "right_feeder");
         diverter = hardwareMap.get(Servo.class, "diverter");
-
 
         /*
          * To drive forward, most robots need the motor on one side to be reversed,
@@ -174,24 +219,18 @@ public class RobotIn3Days extends OpMode {
          */
         rightFeeder.setDirection(DcMotorSimple.Direction.REVERSE);
 
-        /*
-         * Tell the driver that initialization is complete.
-         */
-        telemetry.addData("Status", "Initialized");
-    }
-
-    /*
-     * Code to run REPEATEDLY after the driver hits INIT, but before they hit START
-     */
-    @Override
-    public void init_loop() {
-    }
-
-    /*
-     * Code to run ONCE when the driver hits START
-     */
-    @Override
-    public void start() {
+        if (usePedroPathing){
+            follower = Constants.createFollower(hardwareMap);
+            follower.setStartingPose(new Pose());
+            follower.update();
+            follower.startTeleopDrive();
+            telemetryM = PanelsTelemetry.INSTANCE.getTelemetry();
+        }
+        else
+        {
+            mechanumDrive.init(hardwareMap, odo);
+            odo.init(hardwareMap);
+        }
     }
 
     /*
@@ -199,35 +238,45 @@ public class RobotIn3Days extends OpMode {
      */
     @Override
     public void loop() {
-        odo.newUpdateOutNow();
-        if(odo.getX()==0){
-            homeAngle = 0;
+
+        if (usePedroPathing){
+            double offsetHeading = currentAlliance == Alliance.BLUE? Math.toRadians(180): 0;
+            follower.update();
+            telemetryM.update();
+            follower.setTeleOpDrive(mechanumDrive.squareInputWithSign(-gamepad1.left_stick_y),
+                    mechanumDrive.squareInputWithSign(-gamepad1.left_stick_x),
+                    mechanumDrive.squareInputWithSign(-(gamepad1.right_trigger - gamepad1.left_trigger)),
+                    false,
+                    offsetHeading);
         }
         else {
-            //homeAngle = -Math.toDegrees(Math.atan((odo.getY()-300) / ((odo.getX()-300))));
-            homeAngle = Math.toDegrees(Math.atan((odo.getY()) / ((odo.getX()))));
-        }
-        telemetry.addData("homeangle",homeAngle);
-        telemetry.addData("heading", odo.getHeading());
-        telemetry.addData("x", odo.getX());
-        telemetry.addData("y", odo.getY());
-        if(gamepad1.right_stick_button) {
-            double remainingDistance = homeAngle - odo.getHeading();
-            if (remainingDistance > 45) {
-                mechanumDrive.driveFieldRelative(0, 0, -1);
+            odo.newUpdateOutNow();
+            if (odo.getX() == 0) {
+                homeAngle = 0;
+            } else {
+                //homeAngle = -Math.toDegrees(Math.atan((odo.getY()-300) / ((odo.getX()-300))));
+                homeAngle = Math.toDegrees(Math.atan((odo.getY()) / ((odo.getX()))));
             }
-            if (remainingDistance < -45) {
-                mechanumDrive.driveFieldRelative(0, 0, 1);
+            telemetry.addData("homeangle", homeAngle);
+            telemetry.addData("heading", odo.getHeading());
+            telemetry.addData("x", odo.getX());
+            telemetry.addData("y", odo.getY());
+            if (gamepad1.right_stick_button) {
+                double remainingDistance = homeAngle - odo.getHeading();
+                if (remainingDistance > 45) {
+                    mechanumDrive.driveFieldRelative(0, 0, -1);
+                }
+                if (remainingDistance < -45) {
+                    mechanumDrive.driveFieldRelative(0, 0, 1);
+                } else if (Math.abs(homeAngle) < 45) {
+                    mechanumDrive.driveFieldRelative(0, 0, -remainingDistance / 45);
+                }
+            } else {
+                mechanumDrive.driveFieldRelative(mechanumDrive.squareInputWithSign(-gamepad1.left_stick_y), mechanumDrive.squareInputWithSign(gamepad1.left_stick_x), mechanumDrive.squareInputWithSign(gamepad1.right_trigger - gamepad1.left_trigger));
             }
-            else if(Math.abs(homeAngle)<45){
-                mechanumDrive.driveFieldRelative(0,0, -remainingDistance/45);
+            if (gamepad1.leftStickButtonWasPressed()) {
+                odo.resetEverything();
             }
-        }
-        else {
-            mechanumDrive.driveFieldRelative(mechanumDrive.squareInputWithSign(-gamepad1.left_stick_y), mechanumDrive.squareInputWithSign(gamepad1.left_stick_x), mechanumDrive.squareInputWithSign(gamepad1.right_trigger - gamepad1.left_trigger));
-        }
-        if (gamepad1.leftStickButtonWasPressed()) {
-            odo.resetEverything();
         }
 
         /*
