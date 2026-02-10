@@ -221,7 +221,7 @@ public class RobotIn3Days extends OpMode {
 
         if (usePedroPathing){
             follower = Constants.createFollower(hardwareMap);
-            follower.setStartingPose(new Pose());
+            follower.setStartingPose(new Pose(72,72,0));
             follower.update();
             follower.startTeleopDrive();
             telemetryM = PanelsTelemetry.INSTANCE.getTelemetry();
@@ -240,14 +240,35 @@ public class RobotIn3Days extends OpMode {
     public void loop() {
 
         if (usePedroPathing){
+            double forward = mechanumDrive.squareInputWithSign(-gamepad1.left_stick_y);
+            double strafe = mechanumDrive.squareInputWithSign(-gamepad1.left_stick_x);
+            double turn = mechanumDrive.squareInputWithSign(-(gamepad1.right_trigger - gamepad1.left_trigger));
             double offsetHeading = currentAlliance == Alliance.BLUE? Math.toRadians(180): 0;
             follower.update();
             telemetryM.update();
-            follower.setTeleOpDrive(mechanumDrive.squareInputWithSign(-gamepad1.left_stick_y),
-                    mechanumDrive.squareInputWithSign(-gamepad1.left_stick_x),
-                    mechanumDrive.squareInputWithSign(-(gamepad1.right_trigger - gamepad1.left_trigger)),
-                    false,
-                    offsetHeading);
+
+            double targetX = 0;
+            double targetY = 144;
+            double kP = 1/Math.toRadians(45);
+
+            Pose currentPose = follower.getPose();
+            double targetHeading = Math.atan2(targetY - currentPose.getY(), targetX - currentPose.getX());
+
+            if (gamepad1.right_stick_button){
+                double error = targetHeading - currentPose.getHeading();
+                if (error > Math.PI){
+                    error -= 2 * Math.PI;
+                }
+                turn = error * kP;
+            }
+
+            follower.setTeleOpDrive(forward, strafe, turn, false, offsetHeading);
+
+
+            telemetry.addData("heading",follower.getHeading());
+            telemetry.addData("Xpose",follower.getPose().getX());
+            telemetry.addData("Ypose",follower.getPose().getY());
+            telemetry.addData("goal heading", Math.toDegrees(targetHeading));
         }
         else {
             odo.newUpdateOutNow();
