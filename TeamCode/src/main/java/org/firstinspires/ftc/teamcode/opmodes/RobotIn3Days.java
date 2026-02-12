@@ -25,6 +25,7 @@ package org.firstinspires.ftc.teamcode.opmodes;
 
 import static com.qualcomm.robotcore.hardware.DcMotor.ZeroPowerBehavior.BRAKE;
 
+import com.bylazar.panels.Panels;
 import com.bylazar.telemetry.PanelsTelemetry;
 import com.bylazar.telemetry.TelemetryManager;
 import com.pedropathing.follower.Follower;
@@ -42,6 +43,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 import org.firstinspires.ftc.teamcode.mechanisms.MechanumDrive;
 import org.firstinspires.ftc.teamcode.mechanisms.PinpointOdometry;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
+import org.firstinspires.ftc.teamcode.pedroPathing.PanelsDrawing;
 
 /*
  * This file includes a teleop (driver-controlled) file for the goBILDA® Robot in 3 Days for the
@@ -225,6 +227,8 @@ public class RobotIn3Days extends OpMode {
             follower.update();
             follower.startTeleopDrive();
             telemetryM = PanelsTelemetry.INSTANCE.getTelemetry();
+
+            PanelsDrawing.init();
         }
         else
         {
@@ -247,9 +251,12 @@ public class RobotIn3Days extends OpMode {
             follower.update();
             telemetryM.update();
 
+            PanelsDrawing.drawRobot(follower.getPose());
+            PanelsDrawing.sendPacket();
+
             double targetX = 0;
             double targetY = 144;
-            double kP = 1/Math.toRadians(45);
+            double kP = 1/Math.toRadians(75);
 
             Pose currentPose = follower.getPose();
             double targetHeading = Math.atan2(targetY - currentPose.getY(), targetX - currentPose.getX());
