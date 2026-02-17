@@ -965,14 +965,25 @@ class DriveTuner extends OpMode {
  */
 class Line extends OpMode {
     public static double DISTANCE = 40;
-    private boolean forward = true;
 
     private Path forwards;
     private Path backwards;
 
+    private Timer timer = new Timer();
+
+    enum PathState {
+        Forward,
+        Wait1,
+        Backwards,
+        Wait2
+    }
+
+    private PathState pathState;
+
     @Override
     public void init() {
         follower.setStartingPose(new Pose(72, 72));
+        pathState = PathState.Forward;
     }
 
     /** This initializes the Follower and creates the forward and backward Paths. */
@@ -1002,17 +1013,43 @@ class Line extends OpMode {
         follower.update();
         draw();
 
-        if (!follower.isBusy()) {
-            if (forward) {
-                forward = false;
-                follower.followPath(backwards);
-            } else {
-                forward = true;
-                follower.followPath(forwards);
-            }
+        switch (pathState)
+        {
+            case Forward:
+                if (!follower.isBusy())
+                {
+                    pathState = PathState.Wait1;
+                    timer.resetTimer();
+
+                }
+                break;
+            case Wait1:
+                if (timer.getElapsedTimeSeconds() > 3.0)
+                {
+                    pathState = PathState.Backwards;
+                    follower.followPath(backwards);
+                    timer.resetTimer();
+                }
+                break;
+            case Backwards:
+                if (!follower.isBusy())
+                {
+                    pathState = PathState.Wait2;
+                    timer.resetTimer();
+                }
+                break;
+            case Wait2:
+                if (timer.getElapsedTimeSeconds() > 3.0)
+                {
+                    pathState = PathState.Forward;
+                    follower.followPath(forwards);
+                    timer.resetTimer();
+                }
+                break;
         }
 
-        telemetryM.debug("Driving Forward?: " + forward);
+        telemetryM.debug("Path State:" + pathState);
+        telemetryM.debug("Timer: " + timer.getElapsedTimeSeconds());
         telemetryM.update(telemetry);
     }
 }
