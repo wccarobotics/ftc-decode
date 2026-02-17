@@ -25,7 +25,6 @@ package org.firstinspires.ftc.teamcode.opmodes;
 
 import static com.qualcomm.robotcore.hardware.DcMotor.ZeroPowerBehavior.BRAKE;
 
-import com.bylazar.panels.Panels;
 import com.bylazar.telemetry.PanelsTelemetry;
 import com.bylazar.telemetry.TelemetryManager;
 import com.pedropathing.follower.Follower;
@@ -37,11 +36,11 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.PIDFCoefficients;
-import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.mechanisms.MechanumDrive;
 import org.firstinspires.ftc.teamcode.mechanisms.PinpointOdometry;
+import org.firstinspires.ftc.teamcode.mechanisms.ScoringRI3D;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 import org.firstinspires.ftc.teamcode.pedroPathing.PanelsDrawing;
 
@@ -53,71 +52,11 @@ import org.firstinspires.ftc.teamcode.pedroPathing.PanelsDrawing;
 @TeleOp(name = "DECODE Ri3D", group = "StarterBot")
 //@Disabled
 public class RobotIn3Days extends OpMode {
-    final double FEED_TIME_SECONDS = 1.6; //The feeder servos run this long when a shot is requested.
-    final double STOP_SPEED = 0.0; //We send this power to the servos when we want them to stop.
-    final double FULL_SPEED = 1.0;
-
-    final double LAUNCHER_CLOSE_TARGET_VELOCITY = 1200; //in ticks/second for the close goal.
-    final double LAUNCHER_CLOSE_MIN_VELOCITY = 1175; //minimum required to start a shot for close goal.
-
-    final double LAUNCHER_FAR_TARGET_VELOCITY = 1350; //Target velocity for far goal
-    final double LAUNCHER_FAR_MIN_VELOCITY = 1325; //minimum required to start a shot for far goal.
-
-    double launcherTarget = LAUNCHER_CLOSE_TARGET_VELOCITY; //These variables allow
-    double launcherMin = LAUNCHER_CLOSE_MIN_VELOCITY;
-
-    final double LEFT_POSITION = .35; //the left and right position for the diverter servo
-    final double RIGHT_POSITION = .64;
-    double homeAngle;
-
     // Declare OpMode members.
-    private DcMotor leftFrontDrive = null;
-    private DcMotor rightFrontDrive = null;
-    private DcMotor leftBackDrive = null;
-    private DcMotor rightBackDrive = null;
-    private DcMotorEx leftLauncher = null;
-    private DcMotorEx rightLauncher = null;
-    private DcMotor intake = null;
-    private CRServo leftFeeder = null;
-    private CRServo rightFeeder = null;
-    private Servo diverter = null;
-
-    ElapsedTime leftFeederTimer = new ElapsedTime();
-    ElapsedTime rightFeederTimer = new ElapsedTime();
     MechanumDrive mechanumDrive = new MechanumDrive();
-    PinpointOdometry odo = new PinpointOdometry();
+    ScoringRI3D scoring = new ScoringRI3D();
     private Follower follower;
     private TelemetryManager telemetryM;
-
-    private enum LaunchState {
-        IDLE,
-        SPIN_UP,
-        LAUNCH,
-        LAUNCHING,
-    }
-    private LaunchState leftLaunchState;
-    private LaunchState rightLaunchState;
-
-    private enum DiverterDirection {
-        LEFT,
-        RIGHT;
-    }
-    private DiverterDirection diverterDirection = DiverterDirection.LEFT;
-
-    private enum IntakeState {
-        ON,
-        OFF;
-    }
-
-    private IntakeState intakeState = IntakeState.OFF;
-
-    private enum LauncherDistance {
-        CLOSE,
-        FAR;
-    }
-
-
-    private LauncherDistance launcherDistance = LauncherDistance.CLOSE;
 
     private enum Alliance{
         BLUE,
@@ -125,23 +64,18 @@ public class RobotIn3Days extends OpMode {
     }
     private Alliance currentAlliance = Alliance.BLUE;
 
-    boolean usePedroPathing = true;
-
-    // Setup a variable for each drive wheel to save power level for telemetry
-    double leftFrontPower;
-    double rightFrontPower;
-    double leftBackPower;
-    double rightBackPower;
-
     /*
      * Code to run ONCE when the driver hits INIT
      */
     @Override
     public void init() {
-        leftLaunchState = LaunchState.IDLE;
-        rightLaunchState = LaunchState.IDLE;
-
-
+        follower = Constants.createFollower(hardwareMap);
+        follower.setStartingPose(new Pose(72,72,0));
+        follower.update();
+        follower.startTeleopDrive();
+        telemetryM = PanelsTelemetry.INSTANCE.getTelemetry();
+        PanelsDrawing.init();
+        scoring.init(hardwareMap);
 
         /*
          * Tell the driver that initialization is complete.
@@ -162,11 +96,6 @@ public class RobotIn3Days extends OpMode {
                 currentAlliance = Alliance.BLUE;
             }
         }
-        telemetry.addData("Alliance", currentAlliance);
-        if (gamepad1.aWasPressed()){
-            usePedroPathing = !usePedroPathing;
-        }
-        telemetry.addData("Use Pedro Pathing", usePedroPathing);
     }
 
     /*
@@ -175,66 +104,6 @@ public class RobotIn3Days extends OpMode {
     @Override
     public void start() {
 
-        leftLauncher = hardwareMap.get(DcMotorEx.class, "left_flywheel");
-        rightLauncher = hardwareMap.get(DcMotorEx.class, "right_flywheel");
-        intake = hardwareMap.get(DcMotor.class, "intake");
-        leftFeeder = hardwareMap.get(CRServo.class, "left_feeder");
-        rightFeeder = hardwareMap.get(CRServo.class, "right_feeder");
-        diverter = hardwareMap.get(Servo.class, "diverter");
-
-        /*
-         * To drive forward, most robots need the motor on one side to be reversed,
-         * because the axles point in opposite directions. Pushing the left stick forward
-         * MUST make robot go forward. So adjust these two lines based on your first test drive.
-         * Note: The settings here assume direct drive on left and right wheels. Gear
-         * Reduction or 90 Deg drives may require direction flips
-         */
-
-        leftLauncher.setDirection(DcMotorSimple.Direction.REVERSE);
-
-        intake.setDirection(DcMotorSimple.Direction.REVERSE);
-
-        leftLauncher.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        rightLauncher.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-
-        /*
-         * Setting zeroPowerBehavior to BRAKE enables a "brake mode". This causes the motor to
-         * slow down much faster when it is coasting. This creates a much more controllable
-         * drivetrain. As the robot stops much quicker.
-         */
-
-        leftLauncher.setZeroPowerBehavior(BRAKE);
-        rightLauncher.setZeroPowerBehavior(BRAKE);
-
-        /*
-         * set Feeders to an initial value to initialize the servo controller
-         */
-        leftFeeder.setPower(STOP_SPEED);
-        rightFeeder.setPower(STOP_SPEED);
-
-        leftLauncher.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, new PIDFCoefficients(300, 0, 0, 10));
-        rightLauncher.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, new PIDFCoefficients(300, 0, 0, 10));
-
-        /*
-         * Much like our drivetrain motors, we set the left feeder servo to reverse so that they
-         * both work to feed the ball into the robot.
-         */
-        rightFeeder.setDirection(DcMotorSimple.Direction.REVERSE);
-
-        if (usePedroPathing){
-            follower = Constants.createFollower(hardwareMap);
-            follower.setStartingPose(new Pose(72,72,0));
-            follower.update();
-            follower.startTeleopDrive();
-            telemetryM = PanelsTelemetry.INSTANCE.getTelemetry();
-
-            PanelsDrawing.init();
-        }
-        else
-        {
-            mechanumDrive.init(hardwareMap, odo);
-            odo.init(hardwareMap);
-        }
     }
 
     /*
@@ -243,7 +112,6 @@ public class RobotIn3Days extends OpMode {
     @Override
     public void loop() {
 
-        if (usePedroPathing){
             double forward = mechanumDrive.squareInputWithSign(-gamepad1.left_stick_y);
             double strafe = mechanumDrive.squareInputWithSign(-gamepad1.left_stick_x);
             double turn = mechanumDrive.squareInputWithSign(-(gamepad1.right_trigger - gamepad1.left_trigger));
@@ -276,112 +144,58 @@ public class RobotIn3Days extends OpMode {
             telemetry.addData("Xpose",follower.getPose().getX());
             telemetry.addData("Ypose",follower.getPose().getY());
             telemetry.addData("goal heading", Math.toDegrees(targetHeading));
-        }
-        else {
-            odo.newUpdateOutNow();
-            if (odo.getX() == 0) {
-                homeAngle = 0;
-            } else {
-                //homeAngle = -Math.toDegrees(Math.atan((odo.getY()-300) / ((odo.getX()-300))));
-                homeAngle = Math.toDegrees(Math.atan((odo.getY()) / ((odo.getX()))));
-            }
-            telemetry.addData("homeangle", homeAngle);
-            telemetry.addData("heading", odo.getHeading());
-            telemetry.addData("x", odo.getX());
-            telemetry.addData("y", odo.getY());
-            if (gamepad1.right_stick_button) {
-                double remainingDistance = homeAngle - odo.getHeading();
-                if (remainingDistance > 45) {
-                    mechanumDrive.driveFieldRelative(0, 0, -1);
-                }
-                if (remainingDistance < -45) {
-                    mechanumDrive.driveFieldRelative(0, 0, 1);
-                } else if (Math.abs(homeAngle) < 45) {
-                    mechanumDrive.driveFieldRelative(0, 0, -remainingDistance / 45);
-                }
-            } else {
-                mechanumDrive.driveFieldRelative(mechanumDrive.squareInputWithSign(-gamepad1.left_stick_y), mechanumDrive.squareInputWithSign(gamepad1.left_stick_x), mechanumDrive.squareInputWithSign(gamepad1.right_trigger - gamepad1.left_trigger));
-            }
-            if (gamepad1.leftStickButtonWasPressed()) {
-                odo.resetEverything();
-            }
-        }
 
         /*
          * Here we give the user control of the speed of the launcher motor without automatically
          * queuing a shot.
          */
         if (gamepad1.y) {
-            leftLauncher.setVelocity(launcherTarget);
-            rightLauncher.setVelocity(launcherTarget);
+            scoring.spinLauncher();
         } else if (gamepad1.b) { // stop flywheel
-            leftLauncher.setVelocity(STOP_SPEED);
-            rightLauncher.setVelocity(STOP_SPEED);
+            scoring.stopLauncher();
         }
 
         if (gamepad1.dpadDownWasPressed()) {
-            switch (diverterDirection){
-                case LEFT:
-                    diverterDirection = DiverterDirection.RIGHT;
-                    diverter.setPosition(RIGHT_POSITION);
-                    break;
-                case RIGHT:
-                    diverterDirection = DiverterDirection.LEFT;
-                    diverter.setPosition(LEFT_POSITION);
-
-                    break;
-            }
+            scoring.switchDiverter();
         }
-
         if (gamepad1.dpadLeftWasPressed()) {
-            diverter.setPosition(diverter.getPosition() - 0.05);
+            scoring.changeDiverter(-0.05);
         }
         if (gamepad1.dpadRightWasPressed()) {
-            diverter.setPosition(diverter.getPosition() + 0.05);
+            scoring.changeDiverter(0.05);
         }
 
         if (gamepad1.aWasPressed()){
-            switch (intakeState){
-                case ON:
-                    intakeState = IntakeState.OFF;
-                    intake.setPower(0);
-                    break;
-                case OFF:
-                    intakeState = IntakeState.ON;
-                    intake.setPower(1);
-                    break;
-            }
+            scoring.runIntake();
+        }
+        if (gamepad1.xWasPressed()){
+            scoring.switchIntake();
         }
 
         if (gamepad1.dpadUpWasPressed()) {
-            switch (launcherDistance) {
-                case CLOSE:
-                    launcherDistance = LauncherDistance.FAR;
-                    launcherTarget = LAUNCHER_FAR_TARGET_VELOCITY;
-                    launcherMin = LAUNCHER_FAR_MIN_VELOCITY;
-                    break;
-                case FAR:
-                    launcherDistance = LauncherDistance.CLOSE;
-                    launcherTarget = LAUNCHER_CLOSE_TARGET_VELOCITY;
-                    launcherMin = LAUNCHER_CLOSE_MIN_VELOCITY;
-                    break;
-            }
+            scoring.setLaunchDistance();
         }
         /*
          * Now we call our "Launch" function.
          */
-        launchLeft(gamepad1.leftBumperWasPressed());
-        launchRight(gamepad1.rightBumperWasPressed());
+        if(gamepad1.leftBumperWasPressed()){
+            scoring.shootLeft();
+        }
+        if (gamepad1.rightBumperWasPressed()){
+            scoring.shootRight();
+        }
+
+        scoring.updateAll();
 
         /*
          * Show the state and motor powers
          */
-        telemetry.addData("State", leftLaunchState);
-        telemetry.addData("launch distance", launcherDistance);
-        telemetry.addData("Left Launcher Velocity", leftLauncher.getVelocity());
-        telemetry.addData("Right Launcher Velocity", rightLauncher.getVelocity());
-        telemetry.addData("Diverter position", diverter.getPosition());
-        telemetry.addData("Intake state", intakeState);
+        telemetry.addData("Left State", scoring.getLeftLaunchState());
+        telemetry.addData("Right State", scoring.getRightLaunchState());
+        telemetry.addData("launch distance", scoring.getLauncherDistance());
+        telemetry.addData("Left Launcher Velocity", scoring.flyWheelSpeed());
+        telemetry.addData("Diverter position", scoring.diverterPose());
+        telemetry.addData("Intake state", scoring.intakeSpeed());
 
     }
 
@@ -390,81 +204,5 @@ public class RobotIn3Days extends OpMode {
      */
     @Override
     public void stop() {
-    }
-
-    void mecanumDrive(double forward, double strafe, double rotate){
-
-        /* the denominator is the largest motor power (absolute value) or 1
-         * This ensures all the powers maintain the same ratio,
-         * but only if at least one is out of the range [-1, 1]
-         */
-        double denominator = Math.max(Math.abs(forward) + Math.abs(strafe) + Math.abs(rotate), 1);
-
-        leftFrontPower = (forward + strafe + rotate) / denominator;
-        rightFrontPower = (forward - strafe - rotate) / denominator;
-        leftBackPower = (forward - strafe + rotate) / denominator;
-        rightBackPower = (forward + strafe - rotate) / denominator;
-
-        leftFrontDrive.setPower(leftFrontPower);
-        rightFrontDrive.setPower(rightFrontPower);
-        leftBackDrive.setPower(leftBackPower);
-        rightBackDrive.setPower(rightBackPower);
-
-    }
-
-    void launchLeft(boolean shotRequested) {
-        switch (leftLaunchState) {
-            case IDLE:
-                if (shotRequested) {
-                    leftLaunchState = LaunchState.SPIN_UP;
-                }
-                break;
-            case SPIN_UP:
-                leftLauncher.setVelocity(launcherTarget);
-                rightLauncher.setVelocity(launcherTarget);
-                if (leftLauncher.getVelocity() > launcherMin) {
-                    leftLaunchState = LaunchState.LAUNCH;
-                }
-                break;
-            case LAUNCH:
-                leftFeeder.setPower(FULL_SPEED);
-                leftFeederTimer.reset();
-                leftLaunchState = LaunchState.LAUNCHING;
-                break;
-            case LAUNCHING:
-                if (leftFeederTimer.seconds() > FEED_TIME_SECONDS) {
-                    leftLaunchState = LaunchState.IDLE;
-                    leftFeeder.setPower(STOP_SPEED);
-                }
-                break;
-        }
-    }
-
-    void launchRight(boolean shotRequested) {
-        switch (rightLaunchState) {
-            case IDLE:
-                if (shotRequested) {
-                    rightLaunchState = LaunchState.SPIN_UP;
-                }
-                break;
-            case SPIN_UP:
-                leftLauncher.setVelocity(launcherTarget);
-                rightLauncher.setVelocity(launcherTarget);
-                if (leftLauncher.getVelocity() > launcherMin) {
-                    rightLaunchState = LaunchState.LAUNCH;
-                }
-                break;
-            case LAUNCH:
-                rightFeeder.setPower(FULL_SPEED);
-                rightFeederTimer.reset();
-                rightLaunchState = LaunchState.LAUNCHING;
-                break;
-            case LAUNCHING:
-                if (rightFeederTimer.seconds() > FEED_TIME_SECONDS) {
-                    rightLaunchState = LaunchState.IDLE;
-                    rightFeeder.setPower(STOP_SPEED);
-                }
-                break;
-        }
     }
 }
