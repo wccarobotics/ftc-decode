@@ -1,0 +1,86 @@
+package org.firstinspires.ftc.teamcode.opmodes;
+
+import com.bylazar.telemetry.PanelsTelemetry;
+import com.bylazar.telemetry.TelemetryManager;
+import com.pedropathing.follower.Follower;
+import com.pedropathing.geometry.BezierLine;
+import com.pedropathing.geometry.Pose;
+import com.pedropathing.paths.Path;
+import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+
+import org.firstinspires.ftc.teamcode.mechanisms.ScoringRI3D;
+import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
+import org.firstinspires.ftc.teamcode.pedroPathing.PanelsDrawing;
+
+@Autonomous
+public class JeffAuto extends OpMode {
+
+    private final Pose startPose = new Pose(28, 133, Math.toRadians(127)); // Start Pose of our robot.
+    private final Pose scorePose = new Pose(61.4, 100.8, Math.toRadians(131)); // Scoring Pose of our robot. It is facing the goal at a -37 degree angle.
+
+    private Path scoringPath;
+
+    ScoringRI3D scoring = new ScoringRI3D();
+    private Follower follower;
+    private TelemetryManager telemetryM;
+
+    private enum Alliance{
+        BLUE,
+        RED
+    }
+    private Alliance currentAlliance = Alliance.BLUE;
+
+    @Override
+    public void init() {
+        follower = Constants.createFollower(hardwareMap);
+        follower.setStartingPose(startPose);
+        follower.update();
+        telemetryM = PanelsTelemetry.INSTANCE.getTelemetry();
+        PanelsDrawing.init();
+        scoring.init(hardwareMap, telemetry);
+
+        // make paths
+
+        scoringPath = new Path(new BezierLine(startPose, scorePose));
+        scoringPath.setLinearHeadingInterpolation(startPose.getHeading(), scorePose.getHeading());
+
+        /*
+         * Tell the driver that initialization is complete.
+         */
+        telemetry.addData("Status", "Initialized");
+    }
+
+    @Override
+    public void init_loop() {
+        if (gamepad1.yWasPressed()){
+            if (currentAlliance == Alliance.BLUE){
+                currentAlliance = Alliance.RED;
+            }
+            else {
+                currentAlliance = Alliance.BLUE;
+            }
+        }
+        telemetry.addData("ALLIANCE", currentAlliance);
+    }
+
+    @Override
+    public void start() {
+        follower.followPath(scoringPath);
+    }
+
+
+
+    @Override
+    public void loop() {
+        follower.update();
+        scoring.updateAll();
+        PanelsDrawing.drawDebug(follower);
+
+        if (!follower.isBusy()){
+            if (scoring.getRightLaunchState() == ScoringRI3D.LaunchState.IDLE) {
+                scoring.shootRight();
+            }
+        }
+    }
+}
