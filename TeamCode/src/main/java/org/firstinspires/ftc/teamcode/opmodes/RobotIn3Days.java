@@ -75,7 +75,7 @@ public class RobotIn3Days extends OpMode {
         follower.startTeleopDrive();
         telemetryM = PanelsTelemetry.INSTANCE.getTelemetry();
         PanelsDrawing.init();
-        scoring.init(hardwareMap);
+        scoring.init(hardwareMap, telemetry);
 
         /*
          * Tell the driver that initialization is complete.
@@ -96,6 +96,7 @@ public class RobotIn3Days extends OpMode {
                 currentAlliance = Alliance.BLUE;
             }
         }
+        telemetry.addData("ALLIANCE", currentAlliance);
     }
 
     /*
@@ -140,7 +141,7 @@ public class RobotIn3Days extends OpMode {
             follower.setTeleOpDrive(forward, strafe, turn, false, offsetHeading);
 
 
-            telemetry.addData("heading",follower.getHeading());
+            telemetry.addData("heading", Math.toDegrees(follower.getHeading()));
             telemetry.addData("Xpose",follower.getPose().getX());
             telemetry.addData("Ypose",follower.getPose().getY());
             telemetry.addData("goal heading", Math.toDegrees(targetHeading));

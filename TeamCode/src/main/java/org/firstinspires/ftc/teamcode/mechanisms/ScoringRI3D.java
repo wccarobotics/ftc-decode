@@ -2,14 +2,19 @@ package org.firstinspires.ftc.teamcode.mechanisms;
 
 import static com.qualcomm.robotcore.hardware.DcMotor.ZeroPowerBehavior.BRAKE;
 
+import com.qualcomm.hardware.rev.RevColorSensorV3;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.hardware.NormalizedRGBA;
 import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
+
+import org.firstinspires.ftc.robotcore.external.Telemetry;
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
 public class ScoringRI3D {
     final double FEED_TIME_SECONDS = 1.6; //The feeder servos run this long when a shot is requested.
@@ -32,6 +37,7 @@ public class ScoringRI3D {
     final double LEFT_POSITION = .35; //the left and right position for the diverter servo
     final double RIGHT_POSITION = .64;
 
+    Telemetry telemetry = null;
     private DcMotorEx leftLauncher = null;
     private DcMotorEx rightLauncher = null;
     private DcMotorEx intake = null;
@@ -39,10 +45,12 @@ public class ScoringRI3D {
     private CRServo rightFeeder = null;
     private Servo diverter = null;
 
+    private RevColorSensorV3 leftColorSensor = null;
+
     ElapsedTime leftFeederTimer = new ElapsedTime();
     ElapsedTime rightFeederTimer = new ElapsedTime();
 
-    private enum LaunchState {
+    public enum LaunchState {
         IDLE,
         SPIN_UP,
         LAUNCH,
@@ -71,7 +79,9 @@ public class ScoringRI3D {
 
     private LauncherDistance launcherDistance = LauncherDistance.CLOSE;
 
-    public void init(HardwareMap hardwareMap){
+    public void init(HardwareMap hardwareMap, Telemetry telemetry){
+        this.telemetry = telemetry;
+
         leftLaunchState = LaunchState.IDLE;
         rightLaunchState = LaunchState.IDLE;
 
@@ -81,6 +91,7 @@ public class ScoringRI3D {
         leftFeeder = hardwareMap.get(CRServo.class, "left_feeder");
         rightFeeder = hardwareMap.get(CRServo.class, "right_feeder");
         diverter = hardwareMap.get(Servo.class, "diverter");
+        leftColorSensor = hardwareMap.get(RevColorSensorV3.class, "color_left");
 
         leftLauncher.setDirection(DcMotorSimple.Direction.REVERSE);
 
@@ -260,5 +271,17 @@ public class ScoringRI3D {
         updateFlyWheels();
         updateLeftLauncher();
         updateRightLauncher();
+
+        NormalizedRGBA normColor = leftColorSensor.getNormalizedColors();
+
+        telemetry.addData("left_color", "" + leftColorSensor.red() + ", " +
+                leftColorSensor.green() + ", " + leftColorSensor.blue() + ", " +
+                leftColorSensor.alpha());
+        telemetry.addData("norm_color", "" + normColor.red + ", " +
+                normColor.green + ", " + normColor.blue+ ", " +
+                normColor.alpha);
+        telemetry.addData("Left proximity", leftColorSensor.getDistance(DistanceUnit.CM));
+
+
     }
 }
