@@ -17,13 +17,26 @@ import org.firstinspires.ftc.teamcode.pedroPathing.PanelsDrawing;
 public class JeffAuto extends OpMode {
 
     private final Pose startPose = new Pose(28, 133, Math.toRadians(127)); // Start Pose of our robot.
-    private final Pose scorePose = new Pose(61.4, 100.8, Math.toRadians(131)); // Scoring Pose of our robot. It is facing the goal at a -37 degree angle.
-
+    private final Pose scorePose = new Pose(61.4, 85, Math.toRadians(133)); // Scoring Pose of our robot. It is facing the goal at a -37 degree angle.
+    private final Pose endPose = new Pose(46, 81.6, Math.toRadians(180)); // Ending Pose of robot
     private Path scoringPath;
+
+    private Path endPath;
 
     ScoringRI3D scoring = new ScoringRI3D();
     private Follower follower;
     private TelemetryManager telemetryM;
+
+    private enum AutoState{
+        START,
+        MOVING1,
+        SHOOTING1,
+        SHOOTING2,
+        OFFLINE,
+        END
+    }
+
+    private AutoState autoState = AutoState.START;
 
     private enum Alliance{
         BLUE,
@@ -44,6 +57,9 @@ public class JeffAuto extends OpMode {
 
         scoringPath = new Path(new BezierLine(startPose, scorePose));
         scoringPath.setLinearHeadingInterpolation(startPose.getHeading(), scorePose.getHeading());
+
+        endPath = new Path(new BezierLine(scorePose, endPose));
+        scoringPath.setLinearHeadingInterpolation(scorePose.getHeading(), endPose.getHeading());
 
         /*
          * Tell the driver that initialization is complete.
@@ -77,10 +93,37 @@ public class JeffAuto extends OpMode {
         scoring.updateAll();
         PanelsDrawing.drawDebug(follower);
 
-        if (!follower.isBusy()){
-            if (scoring.getRightLaunchState() == ScoringRI3D.LaunchState.IDLE) {
-                scoring.shootRight();
-            }
+        switch(autoState){
+            case START:
+                follower.followPath(scoringPath);
+                autoState = AutoState.MOVING1;
+                break;
+            case MOVING1:
+                if(!follower.isBusy()){
+                    autoState = AutoState.SHOOTING1;
+                    scoring.shootRight();
+                }
+                break;
+            case SHOOTING1:
+                if (scoring.getRightLaunchState() == ScoringRI3D.LaunchState.IDLE)
+                {
+                    scoring.shootLeft();
+                    autoState = AutoState.SHOOTING2;
+                }
+                break;
+            case SHOOTING2:
+                if (scoring.getLeftLaunchState() == ScoringRI3D.LaunchState.IDLE)
+                {
+                    scoring.switchDiverter();
+                    scoring.shootRight();
+                    autoState = AutoState.OFFLINE;
+                }
+                break;
+            case OFFLINE:
+                if (scoring.getRightLaunchState() == ScoringRI3D.LaunchState.IDLE){
+                    follower.followPath(endPath);
+                    autoState = AutoState.END;
+                }
         }
     }
 }
