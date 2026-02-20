@@ -12,8 +12,8 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import org.firstinspires.ftc.teamcode.commands.CommandScheduler;
 import org.firstinspires.ftc.teamcode.commands.FollowPathCommand;
 import org.firstinspires.ftc.teamcode.commands.InstantCommand;
+import org.firstinspires.ftc.teamcode.commands.LaunchCommand;
 import org.firstinspires.ftc.teamcode.commands.SequentialCommand;
-import org.firstinspires.ftc.teamcode.commands.WaitUntilCommand;
 import org.firstinspires.ftc.teamcode.mechanisms.ScoringRI3D;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 import org.firstinspires.ftc.teamcode.pedroPathing.PanelsDrawing;
@@ -57,12 +57,10 @@ public class JeffAuto extends OpMode {
         // Build the autonomous command sequence
         scheduler.schedule(new SequentialCommand(
             new FollowPathCommand(follower, scoringPath),
-            new InstantCommand(() -> scoring.shootRight()),
-            new WaitUntilCommand(() -> scoring.getRightLaunchState() == ScoringRI3D.LaunchState.IDLE),
-            new InstantCommand(() -> scoring.shootLeft()),
-            new WaitUntilCommand(() -> scoring.getLeftLaunchState() == ScoringRI3D.LaunchState.IDLE),
-            new InstantCommand(() -> { scoring.switchDiverter(); scoring.shootRight(); }),
-            new WaitUntilCommand(() -> scoring.getRightLaunchState() == ScoringRI3D.LaunchState.IDLE),
+            new LaunchCommand(scoring, LaunchCommand.Side.RIGHT),
+            new LaunchCommand(scoring, LaunchCommand.Side.LEFT),
+            new InstantCommand(() -> scoring.switchDiverter()),
+            new LaunchCommand(scoring, LaunchCommand.Side.RIGHT),
             new FollowPathCommand(follower, endPath)
         ));
 
