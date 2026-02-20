@@ -5,8 +5,7 @@ import com.pedropathing.paths.Path;
 
 /**
  * A command that follows a Pedro Pathing Path.
- * Calls follower.update() each loop, so do NOT also call it externally
- * while this command is active.
+ * The OpMode is responsible for calling follower.update() in its loop.
  */
 public class FollowPathCommand extends Command {
 
@@ -21,11 +20,6 @@ public class FollowPathCommand extends Command {
     @Override
     public void initialize() {
         follower.followPath(path);
-    }
-
-    @Override
-    public void execute() {
-        follower.update();
     }
 
     @Override
