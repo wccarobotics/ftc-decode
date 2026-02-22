@@ -31,9 +31,11 @@ public class LimelightVision {
     }
 
     private Limelight3A limelight;
+    private PinpointOdometry odometry;
     private LLResult latestResult;
 
-    public void init(HardwareMap hardwareMap) {
+    public void init(HardwareMap hardwareMap, PinpointOdometry odometry) {
+        this.odometry = odometry;
         limelight = hardwareMap.get(Limelight3A.class, "limelight");
         limelight.setPollRateHz(100);
         limelight.pipelineSwitch(0);
@@ -41,17 +43,11 @@ public class LimelightVision {
     }
 
     /**
-     * Feed the robot's current IMU heading to the Limelight for MegaTag2 accuracy.
-     * Call this every loop before reading the pose.
-     */
-    public void updateRobotHeading(double headingDegrees) {
-        limelight.updateRobotOrientation(headingDegrees);
-    }
-
-    /**
-     * Refreshes the cached result from the Limelight. Call once per loop.
+     * Feeds the Pinpoint heading to the Limelight for MegaTag2 accuracy
+     * and refreshes the cached result. Call once per loop.
      */
     public void update() {
+        limelight.updateRobotOrientation(odometry.getHeading());
         latestResult = limelight.getLatestResult();
     }
 
