@@ -21,6 +21,9 @@ public class PanelsDrawing
     private static final Style historyLook = new Style(
             "", "#4CAF50", 0.75
     );
+    public static final Style limelightLook = new Style(
+            "", "#FF9800", 0.75
+    );
 
     /**
      * This prepares Panels Field for using Pedro Offsets

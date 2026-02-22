@@ -5,6 +5,8 @@ import com.qualcomm.hardware.limelightvision.LLResultTypes;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
+import com.pedropathing.geometry.Pose;
+
 import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
 
 import java.util.List;
@@ -29,6 +31,11 @@ public class LimelightVision {
         PPG,     // tag 23
         UNKNOWN
     }
+
+    private static final double METERS_TO_INCHES = 39.3701;
+    // Pedro Pathing origin is bottom-left corner; Limelight origin is field center.
+    // FTC field is 144 inches, so offset is 72 inches.
+    private static final double FIELD_CENTER_OFFSET_INCHES = 72.0;
 
     private Limelight3A limelight;
     private PinpointOdometry odometry;
@@ -59,13 +66,21 @@ public class LimelightVision {
     }
 
     /**
-     * Returns the MegaTag2 robot pose on the field, or null if unavailable.
+     * Returns the MegaTag2 robot pose converted to Pedro Pathing coordinates
+     * (inches from bottom-left corner, heading in radians), or null if unavailable.
      */
-    public Pose3D getLatestPose() {
+    public Pose getLatestPose() {
         if (!isResultValid()) {
             return null;
         }
-        return latestResult.getBotpose_MT2();
+        Pose3D pose3d = latestResult.getBotpose_MT2();
+        if (pose3d == null) {
+            return null;
+        }
+        double xInches = pose3d.getPosition().x * METERS_TO_INCHES + FIELD_CENTER_OFFSET_INCHES;
+        double yInches = pose3d.getPosition().y * METERS_TO_INCHES + FIELD_CENTER_OFFSET_INCHES;
+        double headingRadians = Math.toRadians(pose3d.getOrientation().getYaw());
+        return new Pose(xInches, yInches, headingRadians);
     }
 
     /**

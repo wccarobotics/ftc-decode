@@ -38,6 +38,7 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+import org.firstinspires.ftc.teamcode.mechanisms.LimelightVision;
 import org.firstinspires.ftc.teamcode.mechanisms.MechanumDrive;
 import org.firstinspires.ftc.teamcode.mechanisms.PinpointOdometry;
 import org.firstinspires.ftc.teamcode.mechanisms.ScoringRI3D;
@@ -55,6 +56,8 @@ public class RobotIn3Days extends OpMode {
     // Declare OpMode members.
     MechanumDrive mechanumDrive = new MechanumDrive();
     ScoringRI3D scoring = new ScoringRI3D();
+    PinpointOdometry odometry = new PinpointOdometry();
+    LimelightVision vision = new LimelightVision();
     private Follower follower;
     private TelemetryManager telemetryM;
 
@@ -76,6 +79,8 @@ public class RobotIn3Days extends OpMode {
         telemetryM = PanelsTelemetry.INSTANCE.getTelemetry();
         PanelsDrawing.init();
         scoring.init(hardwareMap, telemetry);
+        odometry.init(hardwareMap);
+        vision.init(hardwareMap, odometry);
 
         /*
          * Tell the driver that initialization is complete.
@@ -121,6 +126,13 @@ public class RobotIn3Days extends OpMode {
             telemetryM.update();
 
             PanelsDrawing.drawRobot(follower.getPose());
+
+            vision.update();
+            Pose limelightPose = vision.getLatestPose();
+            if (limelightPose != null) {
+                PanelsDrawing.drawRobot(limelightPose, PanelsDrawing.limelightLook);
+            }
+
             PanelsDrawing.sendPacket();
 
             double targetX = 0;
