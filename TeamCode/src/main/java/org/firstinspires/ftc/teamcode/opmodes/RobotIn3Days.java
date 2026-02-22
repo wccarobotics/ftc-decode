@@ -23,20 +23,12 @@
 
 package org.firstinspires.ftc.teamcode.opmodes;
 
-import static com.qualcomm.robotcore.hardware.DcMotor.ZeroPowerBehavior.BRAKE;
-
 import com.bylazar.telemetry.PanelsTelemetry;
 import com.bylazar.telemetry.TelemetryManager;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.Pose;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.hardware.CRServo;
-import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorEx;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
-import com.qualcomm.robotcore.hardware.PIDFCoefficients;
-import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.mechanisms.LimelightVision;
 import org.firstinspires.ftc.teamcode.mechanisms.MechanumDrive;
@@ -53,6 +45,10 @@ import org.firstinspires.ftc.teamcode.pedroPathing.PanelsDrawing;
 //@Disabled
 public class RobotIn3Days extends OpMode {
     // Declare OpMode members.
+    private boolean hasBalls = false;
+    private boolean hadBalls = false;
+    private boolean rightBall = false;
+    private boolean leftBall = false;
     MechanumDrive mechanumDrive = new MechanumDrive();
     ScoringRI3D scoring = new ScoringRI3D();
     LimelightVision vision = new LimelightVision();
@@ -201,6 +197,33 @@ public class RobotIn3Days extends OpMode {
             scoring.shootRight();
         }
 
+        // Auto diverter switching
+        if (scoring.rightBallDistance() < 6){
+            rightBall = true;
+        }
+        else rightBall = false;
+
+        if (scoring.leftBallDistance() < 6){
+            leftBall = true;
+        }
+        else leftBall = false;
+
+        if (rightBall || leftBall) {
+            hasBalls = true;
+            if (!hadBalls && (rightBall ^ leftBall) && (scoring.intakeSpeed() > 30)) {
+                if (rightBall) {
+                    scoring.diverterRight();
+                }
+                if (leftBall) {
+                    scoring.diverterLeft();
+                }
+                hadBalls = true;
+            }
+        }
+        else {
+            hasBalls = false;
+            hadBalls = false;
+        }
         scoring.updateAll();
 
         /*

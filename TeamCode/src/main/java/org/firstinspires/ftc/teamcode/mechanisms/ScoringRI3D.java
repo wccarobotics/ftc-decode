@@ -47,6 +47,8 @@ public class ScoringRI3D {
 
     private RevColorSensorV3 leftColorSensor = null;
 
+    private RevColorSensorV3 rightColorSensor = null;
+
     ElapsedTime leftFeederTimer = new ElapsedTime();
     ElapsedTime rightFeederTimer = new ElapsedTime();
 
@@ -92,6 +94,8 @@ public class ScoringRI3D {
         rightFeeder = hardwareMap.get(CRServo.class, "right_feeder");
         diverter = hardwareMap.get(Servo.class, "diverter");
         leftColorSensor = hardwareMap.get(RevColorSensorV3.class, "color_left");
+        rightColorSensor = hardwareMap.get(RevColorSensorV3.class, "color_right");
+
 
         leftLauncher.setDirection(DcMotorSimple.Direction.REVERSE);
 
@@ -135,6 +139,14 @@ public class ScoringRI3D {
                 diverter.setPosition(LEFT_POSITION);
                 break;
         }
+    }
+    public void diverterLeft(){
+        diverterDirection = DiverterDirection.LEFT;
+        diverter.setPosition(LEFT_POSITION);
+    }
+    public void diverterRight(){
+        diverterDirection = DiverterDirection.RIGHT;
+        diverter.setPosition(RIGHT_POSITION);
     }
     public void changeDiverter(double change){
         diverter.setPosition(diverter.getPosition() + change);
@@ -266,6 +278,13 @@ public class ScoringRI3D {
 
     public double flyWheelSpeed(){
         return (leftLauncher.getVelocity() + rightLauncher.getVelocity()) / 2;
+    }
+
+    public double leftBallDistance(){
+        return leftColorSensor.getDistance(DistanceUnit.CM);
+    }
+    public double rightBallDistance(){
+        return rightColorSensor.getDistance(DistanceUnit.CM);
     }
     public void updateAll(){
         updateFlyWheels();
