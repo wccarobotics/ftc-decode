@@ -36,7 +36,7 @@ public class LimelightVision {
     private static final double METERS_TO_INCHES = 39.3701;
     // Pedro Pathing origin is bottom-left corner; Limelight origin is field center.
     // FTC field is 144 inches, so offset is 72 inches.
-    private static final double FIELD_CENTER_OFFSET_INCHES = 72.0;
+    private static final double FIELD_CENTER_OFFSET_INCHES = 144.0;
 
     private Limelight3A limelight;
     private Follower follower;
