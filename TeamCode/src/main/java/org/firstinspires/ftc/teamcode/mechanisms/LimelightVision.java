@@ -5,6 +5,7 @@ import com.qualcomm.hardware.limelightvision.LLResultTypes;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
+import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.Pose;
 
 import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
@@ -38,11 +39,11 @@ public class LimelightVision {
     private static final double FIELD_CENTER_OFFSET_INCHES = 72.0;
 
     private Limelight3A limelight;
-    private PinpointOdometry odometry;
+    private Follower follower;
     private LLResult latestResult;
 
-    public void init(HardwareMap hardwareMap, PinpointOdometry odometry) {
-        this.odometry = odometry;
+    public void init(HardwareMap hardwareMap, Follower follower) {
+        this.follower = follower;
         limelight = hardwareMap.get(Limelight3A.class, "limelight");
         limelight.setPollRateHz(100);
         limelight.pipelineSwitch(0);
@@ -50,11 +51,11 @@ public class LimelightVision {
     }
 
     /**
-     * Feeds the Pinpoint heading to the Limelight for MegaTag2 accuracy
+     * Feeds the follower's heading to the Limelight for MegaTag2 accuracy
      * and refreshes the cached result. Call once per loop.
      */
     public void update() {
-        limelight.updateRobotOrientation(odometry.getHeading());
+        limelight.updateRobotOrientation(Math.toDegrees(follower.getHeading()));
         latestResult = limelight.getLatestResult();
     }
 

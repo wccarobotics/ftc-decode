@@ -40,7 +40,6 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.mechanisms.LimelightVision;
 import org.firstinspires.ftc.teamcode.mechanisms.MechanumDrive;
-import org.firstinspires.ftc.teamcode.mechanisms.PinpointOdometry;
 import org.firstinspires.ftc.teamcode.mechanisms.ScoringRI3D;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 import org.firstinspires.ftc.teamcode.pedroPathing.PanelsDrawing;
@@ -56,7 +55,6 @@ public class RobotIn3Days extends OpMode {
     // Declare OpMode members.
     MechanumDrive mechanumDrive = new MechanumDrive();
     ScoringRI3D scoring = new ScoringRI3D();
-    PinpointOdometry odometry = new PinpointOdometry();
     LimelightVision vision = new LimelightVision();
     private Follower follower;
     private TelemetryManager telemetryM;
@@ -79,8 +77,7 @@ public class RobotIn3Days extends OpMode {
         telemetryM = PanelsTelemetry.INSTANCE.getTelemetry();
         PanelsDrawing.init();
         scoring.init(hardwareMap, telemetry);
-        odometry.init(hardwareMap);
-        vision.init(hardwareMap, odometry);
+        vision.init(hardwareMap, follower);
 
         /*
          * Tell the driver that initialization is complete.
