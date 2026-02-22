@@ -124,7 +124,13 @@ public class RobotIn3Days extends OpMode {
             PanelsDrawing.sendPacket();
 
             double targetX = 0;
-            double targetY = 144;
+            double targetY = 135;
+
+            if (currentAlliance == Alliance.RED)
+            {
+                targetX = 144 - targetX;
+            }
+
             double kP = 1/Math.toRadians(75);
 
             Pose currentPose = follower.getPose();
