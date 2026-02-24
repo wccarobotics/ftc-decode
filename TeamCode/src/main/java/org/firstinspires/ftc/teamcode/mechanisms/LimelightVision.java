@@ -78,11 +78,11 @@ public class LimelightVision {
         limelight.start();
 
         // Pre-compute goal tag positions in Pedro coordinates
-        Pose2D blueGoalFTC = new Pose2D(DistanceUnit.METER, BLUE_GOAL_X_M, BLUE_GOAL_Y_M, AngleUnit.RADIANS, 0);
+        Pose2D blueGoalFTC = new Pose2D(DistanceUnit.METER, BLUE_GOAL_X_M, BLUE_GOAL_Y_M, AngleUnit.DEGREES, 54);
         blueGoalPedro = PoseConverter.pose2DToPose(blueGoalFTC, InvertedFTCCoordinates.INSTANCE)
                 .getAsCoordinateSystem(PedroCoordinates.INSTANCE);
 
-        Pose2D redGoalFTC = new Pose2D(DistanceUnit.METER, RED_GOAL_X_M, RED_GOAL_Y_M, AngleUnit.RADIANS, 0);
+        Pose2D redGoalFTC = new Pose2D(DistanceUnit.METER, RED_GOAL_X_M, RED_GOAL_Y_M, AngleUnit.DEGREES, -54);
         redGoalPedro = PoseConverter.pose2DToPose(redGoalFTC, InvertedFTCCoordinates.INSTANCE)
                 .getAsCoordinateSystem(PedroCoordinates.INSTANCE);
     }
