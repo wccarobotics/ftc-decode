@@ -45,8 +45,9 @@ import org.firstinspires.ftc.teamcode.pedroPathing.PanelsDrawing;
 //@Disabled
 public class RobotIn3Days extends JeffBase {
     // Declare OpMode members.
-    double curTime = 0;
+
     double lastTime = 0;
+    double lastError = 0;
 
     private boolean hasBalls = false;
     private boolean hadBalls = false;
@@ -100,27 +101,28 @@ public class RobotIn3Days extends JeffBase {
 
 
             // auto aim
-            double kP = 1/Math.toRadians(75);
-            double kD = 0.0001;
-
             Pose currentPose = follower.getPose();
             double targetHeading = Math.atan2(targetY - currentPose.getY(), targetX - currentPose.getX());
 
             double error = targetHeading - currentPose.getHeading();
-            double lastError = 0;
 
 
             if (gamepad1.right_stick_button){
                 if (error > Math.PI){
                     error -= 2 * Math.PI;
                 }
-                double pTerm = error * kP;
+                double pTerm = error * JeffConfig.AimConfig.kP;
 
-                curTime = getRuntime();
+                double curTime = getRuntime();
                 double dT = curTime - lastTime;
-                double dTerm = ((error - lastError) / dT) *kD;
+                double dTerm;
 
-
+                if (dT == 0) {
+                    dTerm = 0;
+                }
+                else {
+                    dTerm = ((error - lastError) / dT) * JeffConfig.AimConfig.kD;
+                }
                 turn = pTerm + dTerm;
 
                 lastError = error;
