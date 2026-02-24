@@ -44,7 +44,7 @@ public class JeffAuto extends JeffBase {
 
         // Build the autonomous command sequence
         scheduler.schedule(new SequentialCommand(
-                new LineToCommand(follower, scorePose),
+                new LineToCommand(follower, AimAt(scorePose, goalTarget)),
                 new LaunchCommand(scoring, LaunchCommand.Side.RIGHT),
                 new LaunchCommand(scoring, LaunchCommand.Side.LEFT),
                 new InstantCommand(() -> scoring.switchDiverter()),

@@ -45,6 +45,9 @@ import org.firstinspires.ftc.teamcode.pedroPathing.PanelsDrawing;
 //@Disabled
 public class RobotIn3Days extends JeffBase {
     // Declare OpMode members.
+    double curTime = 0;
+    double lastTime = 0;
+
     private boolean hasBalls = false;
     private boolean hadBalls = false;
     private boolean rightBall = false;
@@ -59,6 +62,9 @@ public class RobotIn3Days extends JeffBase {
         follower.setStartingPose(new Pose(72,72,0));
         follower.update();
         follower.startTeleopDrive();
+        resetRuntime();
+        curTime = getRuntime();
+
     }
 
     /*
@@ -92,17 +98,37 @@ public class RobotIn3Days extends JeffBase {
                 targetX = 144 - targetX;
             }
 
+
+            // auto aim
             double kP = 1/Math.toRadians(75);
+            double kD = 0.0001;
 
             Pose currentPose = follower.getPose();
             double targetHeading = Math.atan2(targetY - currentPose.getY(), targetX - currentPose.getX());
 
+            double error = targetHeading - currentPose.getHeading();
+            double lastError = 0;
+
+
             if (gamepad1.right_stick_button){
-                double error = targetHeading - currentPose.getHeading();
                 if (error > Math.PI){
                     error -= 2 * Math.PI;
                 }
-                turn = error * kP;
+                double pTerm = error * kP;
+
+                curTime = getRuntime();
+                double dT = curTime - lastTime;
+                double dTerm = ((error - lastError) / dT) *kD;
+
+
+                turn = pTerm + dTerm;
+
+                lastError = error;
+                lastTime = curTime;
+            }
+            else {
+                lastTime = getRuntime();
+                lastError = 0;
             }
 
             follower.setTeleOpDrive(forward, strafe, turn, false, offsetHeading);
@@ -119,10 +145,11 @@ public class RobotIn3Days extends JeffBase {
          */
         if (gamepad1.y) {
             scoring.spinLauncher();
-        } else if (gamepad1.b) { // stop flywheel
+        } else if (gamepad1.b) {
             scoring.stopLauncher();
         }
 
+        // diverter logic
         if (gamepad1.dpadDownWasPressed()) {
             scoring.switchDiverter();
         }
@@ -133,6 +160,7 @@ public class RobotIn3Days extends JeffBase {
             scoring.changeDiverter(0.05);
         }
 
+        // intake
         if (gamepad1.aWasPressed()){
             scoring.runIntake();
         }
@@ -140,7 +168,7 @@ public class RobotIn3Days extends JeffBase {
             scoring.switchIntake();
         }
 
-        if (gamepad1.dpadUpWasPressed()) {
+        if (gamepad1.dpadUpWasPressed()) { // launch distance
             scoring.setLaunchDistance();
         }
         /*
@@ -166,7 +194,7 @@ public class RobotIn3Days extends JeffBase {
 
         if (rightBall || leftBall) {
             hasBalls = true;
-            if (!hadBalls && (rightBall ^ leftBall) && (scoring.intakeSpeed() > 30)) {
+            if (!hadBalls && (rightBall ^ leftBall) && (scoring.intakeSpeed() > 30)) { // not the messiest If statement ive written, check out https://github.com/lsplaisted/missile/blob/main/missile.py for many long If statements and few comments
                 if (rightBall) {
                     scoring.diverterRight();
                 }

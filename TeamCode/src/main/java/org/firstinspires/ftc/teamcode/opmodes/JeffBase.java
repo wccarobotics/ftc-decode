@@ -4,6 +4,7 @@ import com.bylazar.telemetry.PanelsTelemetry;
 import com.bylazar.telemetry.TelemetryManager;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.Pose;
+import com.qualcomm.hardware.sparkfun.SparkFunOTOS;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 
 import org.firstinspires.ftc.teamcode.mechanisms.LimelightVision;
@@ -59,5 +60,11 @@ public abstract class JeffBase extends OpMode {
         if (currentAlliance == Alliance.RED){
             goalTarget = goalTarget.mirror();
         }
+    }
+
+    public Pose AimAt(Pose pose, Pose target)
+    {
+        double targetHeading = Math.atan2(target.getY() - pose.getY(), target.getX() - pose.getX());
+        return pose.withHeading(targetHeading);
     }
 }
