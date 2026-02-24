@@ -55,6 +55,10 @@ public class LimelightVision {
     private static final double RED_GOAL_X_M = -1.4827;
     private static final double RED_GOAL_Y_M = 1.4133;
 
+    // Goal tag facing angles from .fmap rotation matrices (radians, FTC field coords)
+    private static final double BLUE_GOAL_HEADING_RAD = Math.atan2(0.8090169943749473, 0.5877852522924731);
+    private static final double RED_GOAL_HEADING_RAD = Math.atan2(-0.8090169943749473, 0.5877852522924731);
+
     // Camera position relative to robot center (meters)
     private static final double CAMERA_FORWARD_M = -0.127;   // -5 inches behind center
     private static final double CAMERA_RIGHT_M = 0.0254;     // 1 inch right of center
@@ -68,6 +72,11 @@ public class LimelightVision {
     // Pre-computed tag positions in Pedro coordinates
     private Pose blueGoalPedro;
     private Pose redGoalPedro;
+
+    public enum HeadingSource {
+        FOLLOWER,  // Use the Pedro follower's IMU-fused heading (more stable)
+        VISION     // Derive heading from the detected tag orientation (vision-only)
+    }
 
     public void init(HardwareMap hardwareMap, Follower follower, Telemetry telemetry) {
         this.follower = follower;
@@ -108,9 +117,10 @@ public class LimelightVision {
     /**
      * Computes robot pose from a single detected goal AprilTag using manual 2D transforms.
      * Does not require a .fmap file on the Limelight — tag positions are hard-coded.
-     * Returns a Pedro Pose, or null if no goal tag is visible.
+     * @param headingSource whether to use the follower heading or derive it from the tag
+     * @return a Pedro Pose, or null if no goal tag is visible.
      */
-    public Pose getLatestPose2()
+    public Pose getLatestPose2(HeadingSource headingSource)
     {
         if (!isResultValid())
         {
@@ -121,10 +131,13 @@ public class LimelightVision {
         for (LLResultTypes.FiducialResult fr : fiducials) {
             int id = fr.getFiducialId();
             Pose tagPedro;
+            double tagFtcHeadingRad;
             if (id == BLUE_GOAL_TAG_ID) {
                 tagPedro = blueGoalPedro;
+                tagFtcHeadingRad = BLUE_GOAL_HEADING_RAD;
             } else if (id == RED_GOAL_TAG_ID) {
                 tagPedro = redGoalPedro;
+                tagFtcHeadingRad = RED_GOAL_HEADING_RAD;
             } else {
                 continue;
             }
@@ -136,14 +149,27 @@ public class LimelightVision {
             double camForwardM = targetInCam.getPosition().z;
             double camRightM = targetInCam.getPosition().x;
 
+            // Determine robot heading
+            double heading;
+            if (headingSource == HeadingSource.VISION) {
+                // Tag yaw in camera space: how the tag is rotated relative to the camera.
+                // Robot faces opposite the tag face, so add 180°.
+                // Convert from FTC tag heading to Pedro heading by adding 90°.
+                double tagYawInCamRad = Math.toRadians(targetInCam.getOrientation().getYaw());
+                heading = tagFtcHeadingRad - tagYawInCamRad + Math.PI + Math.PI / 2;
+                // Normalize to [0, 2π)
+                heading = ((heading % (2 * Math.PI)) + (2 * Math.PI)) % (2 * Math.PI);
+            } else {
+                heading = follower.getHeading();
+            }
+
             // Add camera-to-robot-center offset, then convert to inches
             double forwardIn = (camForwardM + CAMERA_FORWARD_M) * METERS_TO_INCHES;
             double rightIn = (camRightM + CAMERA_RIGHT_M) * METERS_TO_INCHES;
 
-            // Rotate from robot frame to Pedro field frame using follower heading
+            // Rotate from robot frame to Pedro field frame using heading
             // Pedro: heading 0 = +X, CCW positive
             // Forward direction = (cos θ, sin θ), Right direction = (sin θ, -cos θ)
-            double heading = follower.getHeading();
             double offsetX = forwardIn * Math.cos(heading) + rightIn * Math.sin(heading);
             double offsetY = forwardIn * Math.sin(heading) - rightIn * Math.cos(heading);
 
