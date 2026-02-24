@@ -49,11 +49,25 @@ public class LimelightVision {
     // FTC field is 144 inches, so offset is 72 inches.
     private static final double FIELD_CENTER_OFFSET_INCHES = 144.0;
 
+    // Goal tag positions from DECODE .fmap (meters, FTC center-origin)
+    private static final double BLUE_GOAL_X_M = -1.4827;
+    private static final double BLUE_GOAL_Y_M = -1.4133;
+    private static final double RED_GOAL_X_M = -1.4827;
+    private static final double RED_GOAL_Y_M = 1.4133;
+
+    // Camera position relative to robot center (meters)
+    private static final double CAMERA_FORWARD_M = -0.127;   // -5 inches behind center
+    private static final double CAMERA_RIGHT_M = 0.0254;     // 1 inch right of center
+
     private Limelight3A limelight;
     private Follower follower;
     private LLResult latestResult;
 
     private Telemetry telemetry;
+
+    // Pre-computed tag positions in Pedro coordinates
+    private Pose blueGoalPedro;
+    private Pose redGoalPedro;
 
     public void init(HardwareMap hardwareMap, Follower follower, Telemetry telemetry) {
         this.follower = follower;
@@ -62,6 +76,15 @@ public class LimelightVision {
         limelight.setPollRateHz(100);
         limelight.pipelineSwitch(0);
         limelight.start();
+
+        // Pre-compute goal tag positions in Pedro coordinates
+        Pose2D blueGoalFTC = new Pose2D(DistanceUnit.METER, BLUE_GOAL_X_M, BLUE_GOAL_Y_M, AngleUnit.RADIANS, 0);
+        blueGoalPedro = PoseConverter.pose2DToPose(blueGoalFTC, InvertedFTCCoordinates.INSTANCE)
+                .getAsCoordinateSystem(PedroCoordinates.INSTANCE);
+
+        Pose2D redGoalFTC = new Pose2D(DistanceUnit.METER, RED_GOAL_X_M, RED_GOAL_Y_M, AngleUnit.RADIANS, 0);
+        redGoalPedro = PoseConverter.pose2DToPose(redGoalFTC, InvertedFTCCoordinates.INSTANCE)
+                .getAsCoordinateSystem(PedroCoordinates.INSTANCE);
     }
 
     /**
@@ -82,6 +105,11 @@ public class LimelightVision {
         return latestResult != null && latestResult.isValid();
     }
 
+    /**
+     * Computes robot pose from a single detected goal AprilTag using manual 2D transforms.
+     * Does not require a .fmap file on the Limelight — tag positions are hard-coded.
+     * Returns a Pedro Pose, or null if no goal tag is visible.
+     */
     public Pose getLatestPose2()
     {
         if (!isResultValid())
@@ -89,13 +117,40 @@ public class LimelightVision {
             return null;
         }
 
-
         List<LLResultTypes.FiducialResult> fiducials = latestResult.getFiducialResults();
         for (LLResultTypes.FiducialResult fr : fiducials) {
-            if (fr.getFiducialId() == BLUE_GOAL_TAG_ID)
-            {
-                fr.getCameraPoseTargetSpace();
+            int id = fr.getFiducialId();
+            Pose tagPedro;
+            if (id == BLUE_GOAL_TAG_ID) {
+                tagPedro = blueGoalPedro;
+            } else if (id == RED_GOAL_TAG_ID) {
+                tagPedro = redGoalPedro;
+            } else {
+                continue;
             }
+
+            Pose3D targetInCam = fr.getTargetPoseCameraSpace();
+            if (targetInCam == null) continue;
+
+            // Camera space: z = forward, x = right (meters). Ignore y (height).
+            double camForwardM = targetInCam.getPosition().z;
+            double camRightM = targetInCam.getPosition().x;
+
+            // Add camera-to-robot-center offset, then convert to inches
+            double forwardIn = (camForwardM + CAMERA_FORWARD_M) * METERS_TO_INCHES;
+            double rightIn = (camRightM + CAMERA_RIGHT_M) * METERS_TO_INCHES;
+
+            // Rotate from robot frame to Pedro field frame using follower heading
+            // Pedro: heading 0 = +X, CCW positive
+            // Forward direction = (cos θ, sin θ), Right direction = (sin θ, -cos θ)
+            double heading = follower.getHeading();
+            double offsetX = forwardIn * Math.cos(heading) + rightIn * Math.sin(heading);
+            double offsetY = forwardIn * Math.sin(heading) - rightIn * Math.cos(heading);
+
+            double robotX = tagPedro.getX() - offsetX;
+            double robotY = tagPedro.getY() - offsetY;
+
+            return new Pose(robotX, robotY, heading);
         }
         return null;
     }
