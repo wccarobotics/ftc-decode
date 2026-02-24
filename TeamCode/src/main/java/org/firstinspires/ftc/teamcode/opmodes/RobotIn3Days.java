@@ -43,66 +43,22 @@ import org.firstinspires.ftc.teamcode.pedroPathing.PanelsDrawing;
 
 @TeleOp(name = "DECODE Ri3D", group = "StarterBot")
 //@Disabled
-public class RobotIn3Days extends OpMode {
+public class RobotIn3Days extends JeffBase {
     // Declare OpMode members.
     private boolean hasBalls = false;
     private boolean hadBalls = false;
     private boolean rightBall = false;
     private boolean leftBall = false;
     MechanumDrive mechanumDrive = new MechanumDrive();
-    ScoringRI3D scoring = new ScoringRI3D();
-    LimelightVision vision = new LimelightVision();
-    private Follower follower;
-    private TelemetryManager telemetryM;
-
-    private enum Alliance{
-        BLUE,
-        RED
-    }
-    private Alliance currentAlliance = Alliance.BLUE;
-
-    /*
-     * Code to run ONCE when the driver hits INIT
-     */
-    @Override
-    public void init() {
-        follower = Constants.createFollower(hardwareMap);
-        follower.setStartingPose(new Pose(72,72,0));
-        follower.update();
-        follower.startTeleopDrive();
-        telemetryM = PanelsTelemetry.INSTANCE.getTelemetry();
-        PanelsDrawing.init();
-        scoring.init(hardwareMap, telemetry);
-        vision.init(hardwareMap, follower);
-
-        /*
-         * Tell the driver that initialization is complete.
-         */
-        telemetry.addData("Status", "Initialized");
-    }
-
-    /*
-     * Code to run REPEATEDLY after the driver hits INIT, but before they hit START
-     */
-    @Override
-    public void init_loop() {
-        if (gamepad1.yWasPressed()){
-            if (currentAlliance == Alliance.BLUE){
-                currentAlliance = Alliance.RED;
-            }
-            else {
-                currentAlliance = Alliance.BLUE;
-            }
-        }
-        telemetry.addData("ALLIANCE", currentAlliance);
-    }
 
     /*
      * Code to run ONCE when the driver hits START
      */
     @Override
     public void start() {
-
+        follower.setStartingPose(new Pose(72,72,0));
+        follower.update();
+        follower.startTeleopDrive();
     }
 
     /*

@@ -21,48 +21,19 @@ import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 import org.firstinspires.ftc.teamcode.pedroPathing.PanelsDrawing;
 
 @Autonomous
-public class JeffAuto extends OpMode {
+public class JeffAuto extends JeffBase {
 
     private Pose startPose = new Pose(22.6, 128.4, Math.toRadians(139.9)); // Start Pose of our robot.
     private Pose scorePose = new Pose(61.4, 85, Math.toRadians(144)); // Scoring Pose of our robot. It is facing the goal at a -37 degree angle.
     private Pose endPose = new Pose(46, 81.6, Math.toRadians(180)); // Ending Pose of robot
-    ScoringRI3D scoring = new ScoringRI3D();
-    private Follower follower;
-    private TelemetryManager telemetryM;
+
     private CommandScheduler scheduler = new CommandScheduler();
 
-    private enum Alliance{
-        BLUE,
-        RED
-    }
-    private Alliance currentAlliance = Alliance.BLUE;
-
-    @Override
-    public void init() {
-
-        follower = Constants.createFollower(hardwareMap);
-        telemetryM = PanelsTelemetry.INSTANCE.getTelemetry();
-        PanelsDrawing.init();
-        scoring.init(hardwareMap, telemetry);
 
 
-        telemetry.addData("Status", "Initialized");
-    }
-
-    @Override
-    public void init_loop() {
-        if (gamepad1.yWasPressed()){
-            if (currentAlliance == Alliance.BLUE){
-                currentAlliance = Alliance.RED;
-            }
-            else {
-                currentAlliance = Alliance.BLUE;
-            }
-        }
-        telemetry.addData("ALLIANCE", currentAlliance);
-    }
     @Override
     public void start(){
+
         if (currentAlliance == Alliance.RED){
             startPose = startPose.mirror();
             scorePose = scorePose.mirror();
