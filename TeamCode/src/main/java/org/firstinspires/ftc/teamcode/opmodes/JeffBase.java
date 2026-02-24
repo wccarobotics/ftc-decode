@@ -35,7 +35,7 @@ public abstract class JeffBase extends OpMode {
         telemetryM = PanelsTelemetry.INSTANCE.getTelemetry();
         PanelsDrawing.init();
         scoring.init(hardwareMap, telemetry);
-        vision.init(hardwareMap, follower);
+        vision.init(hardwareMap, follower, telemetry);
 
 
         telemetry.addData("Status", "Initialized");

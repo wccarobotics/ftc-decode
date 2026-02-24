@@ -48,6 +48,7 @@ public class RobotIn3Days extends JeffBase {
 
     double lastTime = 0;
     double lastError = 0;
+    double curTime;
 
     private boolean hasBalls = false;
     private boolean hadBalls = false;
@@ -60,7 +61,8 @@ public class RobotIn3Days extends JeffBase {
      */
     @Override
     public void start() {
-        follower.setStartingPose(new Pose(72,72,0));
+        //follower.setStartingPose(new Pose(22.6, 128.4, Math.toRadians(139.9)));
+        follower.setStartingPose(new Pose(72, 72, Math.toRadians(45)));
         follower.update();
         follower.startTeleopDrive();
         resetRuntime();
@@ -87,6 +89,7 @@ public class RobotIn3Days extends JeffBase {
             Pose limelightPose = vision.getLatestPose();
             if (limelightPose != null) {
                 PanelsDrawing.drawRobot(limelightPose, PanelsDrawing.limelightLook);
+                telemetry.addData("camera", limelightPose.toString());
             }
 
             PanelsDrawing.sendPacket();
@@ -215,10 +218,7 @@ public class RobotIn3Days extends JeffBase {
         /*
          * Show the state and motor powers
          */
-        telemetry.addData("Left State", scoring.getLeftLaunchState());
-        telemetry.addData("Right State", scoring.getRightLaunchState());
         telemetry.addData("launch distance", scoring.getLauncherDistance());
-        telemetry.addData("Left Launcher Velocity", scoring.flyWheelSpeed());
         telemetry.addData("Diverter position", scoring.diverterPose());
         telemetry.addData("Intake state", scoring.intakeSpeed());
 

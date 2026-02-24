@@ -1,5 +1,8 @@
 package org.firstinspires.ftc.teamcode.mechanisms;
 
+import com.pedropathing.ftc.InvertedFTCCoordinates;
+import com.pedropathing.ftc.PoseConverter;
+import com.pedropathing.geometry.PedroCoordinates;
 import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.LLResultTypes;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
@@ -8,6 +11,10 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.Pose;
 
+import org.firstinspires.ftc.robotcore.external.Telemetry;
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
 
 import java.util.List;
@@ -17,6 +24,10 @@ import java.util.List;
  * Provides MegaTag2-based localization and DECODE obelisk motif detection.
  */
 public class LimelightVision {
+
+    //  Camera forward: -5 inches, -0.127 m
+    //  Camera right: 1 inch, 0.0254 m
+    //  Camera Up: 16 inches, 0.4064 m
 
     // DECODE field AprilTag IDs
     public static final int BLUE_GOAL_TAG_ID = 20;
@@ -42,8 +53,11 @@ public class LimelightVision {
     private Follower follower;
     private LLResult latestResult;
 
-    public void init(HardwareMap hardwareMap, Follower follower) {
+    private Telemetry telemetry;
+
+    public void init(HardwareMap hardwareMap, Follower follower, Telemetry telemetry) {
         this.follower = follower;
+        this.telemetry = telemetry;
         limelight = hardwareMap.get(Limelight3A.class, "limelight");
         limelight.setPollRateHz(100);
         limelight.pipelineSwitch(0);
@@ -55,7 +69,9 @@ public class LimelightVision {
      * and refreshes the cached result. Call once per loop.
      */
     public void update() {
-        limelight.updateRobotOrientation(Math.toDegrees(follower.getHeading()));
+        //  Subtract 90 degrees to convert from Pedro coordinate system to FTC coordinate system, which
+        //  the camera uses.
+        limelight.updateRobotOrientation(Math.toDegrees(follower.getHeading()) - 90);
         latestResult = limelight.getLatestResult();
     }
 
@@ -64,6 +80,24 @@ public class LimelightVision {
      */
     public boolean isResultValid() {
         return latestResult != null && latestResult.isValid();
+    }
+
+    public Pose getLatestPose2()
+    {
+        if (!isResultValid())
+        {
+            return null;
+        }
+
+
+        List<LLResultTypes.FiducialResult> fiducials = latestResult.getFiducialResults();
+        for (LLResultTypes.FiducialResult fr : fiducials) {
+            if (fr.getFiducialId() == BLUE_GOAL_TAG_ID)
+            {
+                fr.getCameraPoseTargetSpace();
+            }
+        }
+        return null;
     }
 
     /**
@@ -75,13 +109,29 @@ public class LimelightVision {
             return null;
         }
         Pose3D pose3d = latestResult.getBotpose_MT2();
+
         if (pose3d == null) {
             return null;
         }
-        double xInches = pose3d.getPosition().x * METERS_TO_INCHES + FIELD_CENTER_OFFSET_INCHES;
-        double yInches = pose3d.getPosition().y * METERS_TO_INCHES + FIELD_CENTER_OFFSET_INCHES;
-        double headingRadians = Math.toRadians(pose3d.getOrientation().getYaw());
-        return new Pose(xInches, yInches, headingRadians);
+        Pose2D pose2d = new Pose2D(pose3d.getPosition().unit, pose3d.getPosition().x, pose3d.getPosition().y,
+                AngleUnit.RADIANS, pose3d.getOrientation().getYaw(AngleUnit.RADIANS));
+
+        telemetry.addData("FTC Camera heading", pose2d.getHeading(AngleUnit.DEGREES));
+        telemetry.addData("FTC Camera x", pose2d.getX(DistanceUnit.INCH));
+        telemetry.addData("FTC Camera y", pose2d.getY(DistanceUnit.INCH));
+
+        Pose ftcPose = PoseConverter.pose2DToPose(pose2d, InvertedFTCCoordinates.INSTANCE);
+        telemetry.addData("FTC pose heading", Math.toDegrees(ftcPose.getHeading()));
+
+        Pose pedroPose = ftcPose.getAsCoordinateSystem(PedroCoordinates.INSTANCE);
+        telemetry.addData("Pedro pose heading", Math.toDegrees(pedroPose.getHeading()));
+
+        return pedroPose;
+//
+//        double xInches = pose3d.getPosition().x * METERS_TO_INCHES + FIELD_CENTER_OFFSET_INCHES;
+//        double yInches = pose3d.getPosition().y * METERS_TO_INCHES + FIELD_CENTER_OFFSET_INCHES;
+//        double headingRadians = Math.toRadians(pose3d.getOrientation().getYaw());
+//        return new Pose(xInches, yInches, headingRadians);
     }
 
     /**
