@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.mechanisms;
 
+import com.pedropathing.ftc.FTCCoordinates;
 import com.pedropathing.ftc.InvertedFTCCoordinates;
 import com.pedropathing.ftc.PoseConverter;
 import com.pedropathing.geometry.PedroCoordinates;
@@ -78,6 +79,23 @@ public class LimelightVision {
         VISION     // Derive heading from the detected tag orientation (vision-only)
     }
 
+
+    static Pose ftcToPedro(Pose2D ftcPose) {
+//        final double FIELD_SIZE = 144.0;  // inches
+//        final double FIELD_CENTER = 72.0;  // inches
+//        final double INCHES_PER_METER = 39.3701;
+//
+//        // Convert meters to inches and shift origin
+//        double pedroX = (ftcPose.getX(DistanceUnit.METER) * INCHES_PER_METER) + FIELD_CENTER;
+//        double pedroY = (ftcPose.getY(DistanceUnit.METER) * INCHES_PER_METER) + FIELD_CENTER;
+//        double headingRad = Math.toRadians(ftcPose.getHeading(AngleUnit.DEGREES));
+//
+//        return new Pose(pedroX, pedroY, headingRad);
+        return PoseConverter.pose2DToPose(ftcPose, FTCCoordinates.INSTANCE)
+                .getAsCoordinateSystem(PedroCoordinates.INSTANCE);
+    }
+
+
     public void init(HardwareMap hardwareMap, Follower follower, Telemetry telemetry) {
         this.follower = follower;
         this.telemetry = telemetry;
@@ -88,12 +106,10 @@ public class LimelightVision {
 
         // Pre-compute goal tag positions in Pedro coordinates
         Pose2D blueGoalFTC = new Pose2D(DistanceUnit.METER, BLUE_GOAL_X_M, BLUE_GOAL_Y_M, AngleUnit.DEGREES, 54);
-        blueGoalPedro = PoseConverter.pose2DToPose(blueGoalFTC, InvertedFTCCoordinates.INSTANCE)
-                .getAsCoordinateSystem(PedroCoordinates.INSTANCE);
+        blueGoalPedro = ftcToPedro(blueGoalFTC);
 
         Pose2D redGoalFTC = new Pose2D(DistanceUnit.METER, RED_GOAL_X_M, RED_GOAL_Y_M, AngleUnit.DEGREES, -54);
-        redGoalPedro = PoseConverter.pose2DToPose(redGoalFTC, InvertedFTCCoordinates.INSTANCE)
-                .getAsCoordinateSystem(PedroCoordinates.INSTANCE);
+        redGoalPedro = ftcToPedro(redGoalFTC);
     }
 
     /**
@@ -142,6 +158,8 @@ public class LimelightVision {
                 continue;
             }
 
+            telemetry.addData("Goal: ", "" + tagPedro.getX() + " " + tagPedro.getY());
+
             Pose3D targetInCam = fr.getTargetPoseCameraSpace();
             if (targetInCam == null) continue;
 
@@ -156,6 +174,7 @@ public class LimelightVision {
                 // Robot faces opposite the tag face, so add 180°.
                 // Convert from FTC tag heading to Pedro heading by adding 90°.
                 double tagYawInCamRad = Math.toRadians(targetInCam.getOrientation().getYaw());
+                telemetry.addData("tagYawInCam", Math.toDegrees(tagYawInCamRad));
                 heading = tagFtcHeadingRad - tagYawInCamRad + Math.PI + Math.PI / 2;
                 // Normalize to [0, 2π)
                 heading = ((heading % (2 * Math.PI)) + (2 * Math.PI)) % (2 * Math.PI);
@@ -166,6 +185,9 @@ public class LimelightVision {
             // Add camera-to-robot-center offset, then convert to inches
             double forwardIn = (camForwardM + CAMERA_FORWARD_M) * METERS_TO_INCHES;
             double rightIn = (camRightM + CAMERA_RIGHT_M) * METERS_TO_INCHES;
+
+            telemetry.addData("Camera forward", forwardIn);
+            telemetry.addData("Camera right", rightIn);
 
             // Rotate from robot frame to Pedro field frame using heading
             // Pedro: heading 0 = +X, CCW positive
@@ -201,10 +223,11 @@ public class LimelightVision {
         telemetry.addData("FTC Camera x", pose2d.getX(DistanceUnit.INCH));
         telemetry.addData("FTC Camera y", pose2d.getY(DistanceUnit.INCH));
 
-        Pose ftcPose = PoseConverter.pose2DToPose(pose2d, InvertedFTCCoordinates.INSTANCE);
+        Pose ftcPose = PoseConverter.pose2DToPose(pose2d, FTCCoordinates.INSTANCE);
         telemetry.addData("FTC pose heading", Math.toDegrees(ftcPose.getHeading()));
 
         Pose pedroPose = ftcPose.getAsCoordinateSystem(PedroCoordinates.INSTANCE);
+        //Pose pedroPose = ftcToPedro(pose2d);
         telemetry.addData("Pedro pose heading", Math.toDegrees(pedroPose.getHeading()));
 
         return pedroPose;

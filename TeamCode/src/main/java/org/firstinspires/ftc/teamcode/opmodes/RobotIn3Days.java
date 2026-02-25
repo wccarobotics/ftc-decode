@@ -86,7 +86,8 @@ public class RobotIn3Days extends JeffBase {
             PanelsDrawing.drawRobot(follower.getPose());
 
             vision.update();
-            Pose limelightPose = vision.getLatestPose();
+            Pose limelightPose = vision.getLatestPose2(LimelightVision.HeadingSource.VISION);
+            //Pose limelightPose = vision.getLatestPose();
             if (limelightPose != null) {
                 PanelsDrawing.drawRobot(limelightPose, PanelsDrawing.limelightLook);
                 telemetry.addData("camera", limelightPose.toString());
