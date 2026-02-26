@@ -23,7 +23,6 @@ import org.firstinspires.ftc.teamcode.pedroPathing.PanelsDrawing;
 @Autonomous
 public class JeffAuto extends JeffBase {
 
-    private Pose startPose = new Pose(22.6, 128.4, Math.toRadians(144)); // Start Pose of our robot.
     private Pose scorePose = new Pose(61.4, 85, Math.toRadians(144)); // Scoring Pose of our robot. It is facing the goal at a -37 degree angle.
     private Pose endPose = new Pose(46, 81.6, Math.toRadians(180)); // Ending Pose of robot
 
@@ -34,13 +33,13 @@ public class JeffAuto extends JeffBase {
     @Override
     public void start(){
 
+        super.start();
+
         if (currentAlliance == Alliance.RED){
-            startPose = startPose.mirror();
             scorePose = scorePose.mirror();
             endPose = endPose.mirror();
         }
-        follower.setStartingPose(startPose);
-        follower.update();
+
 
         // Build the autonomous command sequence
         scheduler.schedule(new SequentialCommand(

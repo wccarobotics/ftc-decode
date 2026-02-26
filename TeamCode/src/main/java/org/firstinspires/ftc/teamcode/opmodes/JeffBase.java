@@ -1,5 +1,8 @@
 package org.firstinspires.ftc.teamcode.opmodes;
 
+import android.content.Context;
+import android.content.SharedPreferences;
+
 import com.bylazar.telemetry.PanelsTelemetry;
 import com.bylazar.telemetry.TelemetryManager;
 import com.pedropathing.follower.Follower;
@@ -12,8 +15,11 @@ import org.firstinspires.ftc.teamcode.mechanisms.ScoringRI3D;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 import org.firstinspires.ftc.teamcode.pedroPathing.PanelsDrawing;
 
+import java.util.ArrayList;
+
 public abstract class JeffBase extends OpMode {
 
+    protected SharedPreferences prefs;
     protected ScoringRI3D scoring = new ScoringRI3D();
     protected Follower follower;
     protected TelemetryManager telemetryM;
@@ -28,6 +34,25 @@ public abstract class JeffBase extends OpMode {
 
     protected Pose goalTarget = new Pose(0, 138);
 
+    protected Pose savedPose;
+
+    class PoseOption
+    {
+        public String name;
+        public Pose pose;
+        public Boolean shouldMirror;
+
+        public PoseOption (String name, Pose pose, Boolean shouldMirror)
+        {
+            this.name = name;
+            this.pose = pose;
+            this.shouldMirror = shouldMirror;
+        }
+    }
+
+    ArrayList<PoseOption> poseOptions;
+    int selectedPoseIndex = 0;
+
     @Override
     public void init() {
 
@@ -36,9 +61,34 @@ public abstract class JeffBase extends OpMode {
         PanelsDrawing.init();
         scoring.init(hardwareMap, telemetry);
         vision.init(hardwareMap, follower, telemetry);
+        prefs = hardwareMap.appContext.getSharedPreferences("FTCData", Context.MODE_PRIVATE);
+        load();
+
+        poseOptions = new ArrayList<>();
+        poseOptions.add(new PoseOption("Saved Pose", savedPose, false));
+        poseOptions.add(new PoseOption("Center of Field", new Pose(72, 72, 0), false));
+        poseOptions.add(new PoseOption("Near", new Pose(22.6,128.4, Math.toRadians(144)), true));
+        poseOptions.add(new PoseOption("Far", new Pose(9, 83, Math.toRadians(90)), true));
 
 
         telemetry.addData("Status", "Initialized");
+    }
+
+    public void save(){
+        prefs.edit()
+                .putString("alliance", currentAlliance == Alliance.BLUE? "blue": "red")
+                .putFloat("PoseX",(float)follower.getPose().getX())
+                .putFloat("PoseY", (float)follower.getPose().getY())
+                .putFloat("Heading", (float)follower.getPose().getHeading())
+                .apply();
+    }
+    public void load(){
+        currentAlliance = prefs.getString("alliance", "blue") == "blue"? Alliance.BLUE: Alliance.RED;
+        savedPose = new Pose(
+            (double)prefs.getFloat("PoseX", (float)22.6),
+            (double)prefs.getFloat("PoseY", (float)128.4),
+            (double)prefs.getFloat("Heading", (float)Math.toRadians(144))
+        );
     }
 
     @Override
@@ -51,20 +101,56 @@ public abstract class JeffBase extends OpMode {
                 currentAlliance = Alliance.BLUE;
             }
         }
+
+        if (gamepad1.dpadUpWasPressed()){
+            selectedPoseIndex++;
+        }
+        else if (gamepad1.dpadDownWasPressed()) {
+            selectedPoseIndex--;
+        }
+
+        selectedPoseIndex = selectedPoseIndex % poseOptions.size();
+        if (selectedPoseIndex < 0)
+        {
+            selectedPoseIndex += poseOptions.size();
+        }
+
+        PoseOption selectedPose = poseOptions.get(selectedPoseIndex);
         telemetry.addData("ALLIANCE", currentAlliance);
+        telemetry.addData("Starting pose name", selectedPose.name);
+        telemetry.addData("Starting pose", "%f %f %f",
+                selectedPose.pose.getX(), selectedPose.pose.getY(), Math.toDegrees(selectedPose.pose.getHeading()));
     }
 
     @Override
     public void start()
     {
+        PoseOption startingPoseOption = poseOptions.get(selectedPoseIndex);
+
+        Pose startingPose = startingPoseOption.pose;
+
         if (currentAlliance == Alliance.RED){
             goalTarget = goalTarget.mirror();
+            if (startingPoseOption.shouldMirror){
+                startingPose = startingPose.mirror();
+            }
         }
+
+        follower.setStartingPose(startingPose);
+        follower.update();
+
+        save();
     }
 
     public Pose AimAt(Pose pose, Pose target)
     {
         double targetHeading = Math.atan2(target.getY() - pose.getY(), target.getX() - pose.getX());
         return pose.withHeading(targetHeading);
+    }
+
+    @Override
+    public void stop()
+    {
+        save();
     }
 }

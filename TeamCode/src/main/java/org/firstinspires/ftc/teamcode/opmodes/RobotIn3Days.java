@@ -61,9 +61,8 @@ public class RobotIn3Days extends JeffBase {
      */
     @Override
     public void start() {
-        //follower.setStartingPose(new Pose(22.6, 128.4, Math.toRadians(139.9)));
-        follower.setStartingPose(new Pose(72, 72, Math.toRadians(45)));
-        follower.update();
+        super.start();
+
         follower.startTeleopDrive();
         resetRuntime();
         curTime = getRuntime();
@@ -230,5 +229,6 @@ public class RobotIn3Days extends JeffBase {
      */
     @Override
     public void stop() {
+        super.stop();
     }
 }
