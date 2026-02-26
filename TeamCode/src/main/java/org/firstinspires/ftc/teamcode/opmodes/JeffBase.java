@@ -83,7 +83,7 @@ public abstract class JeffBase extends OpMode {
                 .apply();
     }
     public void load(){
-        currentAlliance = prefs.getString("alliance", "blue") == "blue"? Alliance.BLUE: Alliance.RED;
+        currentAlliance = prefs.getString("alliance", "blue").equals("blue")? Alliance.BLUE: Alliance.RED;
         savedPose = new Pose(
             (double)prefs.getFloat("PoseX", (float)22.6),
             (double)prefs.getFloat("PoseY", (float)128.4),

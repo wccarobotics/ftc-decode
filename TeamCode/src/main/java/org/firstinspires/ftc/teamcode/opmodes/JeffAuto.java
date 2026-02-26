@@ -24,7 +24,9 @@ import org.firstinspires.ftc.teamcode.pedroPathing.PanelsDrawing;
 public class JeffAuto extends JeffBase {
 
     private Pose scorePose = new Pose(61.4, 85, Math.toRadians(144)); // Scoring Pose of our robot. It is facing the goal at a -37 degree angle.
-    private Pose endPose = new Pose(46, 81.6, Math.toRadians(180)); // Ending Pose of robot
+    private Pose midPose = new Pose(46, 81.6, Math.toRadians(180)); // Ending Pose of robot
+    private Pose Grab1PoseA = new Pose(37.3, 84, Math.toRadians(180));
+    private Pose Grab1PoseB = new Pose(26, 84, Math.toRadians(180));
 
     private CommandScheduler scheduler = new CommandScheduler();
 
@@ -37,7 +39,7 @@ public class JeffAuto extends JeffBase {
 
         if (currentAlliance == Alliance.RED){
             scorePose = scorePose.mirror();
-            endPose = endPose.mirror();
+            midPose = midPose.mirror();
         }
 
 
@@ -50,7 +52,17 @@ public class JeffAuto extends JeffBase {
                 new InstantCommand(()-> scoring.runIntake()),
                 new WaitCommand(0.5),
                 new LaunchCommand(scoring, LaunchCommand.Side.RIGHT),
-                new LineToCommand(follower, endPose)
+                new LineToCommand(follower, midPose),
+                new LineToCommand(follower, Grab1PoseA, 0.25),
+                new InstantCommand(() -> scoring.switchDiverter()),
+                new LineToCommand(follower, Grab1PoseB),
+                new LineToCommand(follower, AimAt(scorePose, goalTarget)),
+                new LaunchCommand(scoring, LaunchCommand.Side.RIGHT),
+                new LaunchCommand(scoring, LaunchCommand.Side.LEFT),
+                new InstantCommand(() -> scoring.switchDiverter()),
+                new InstantCommand(()-> scoring.runIntake()),
+                new WaitCommand(0.5),
+                new LaunchCommand(scoring, LaunchCommand.Side.RIGHT)
         ));
     }
 
