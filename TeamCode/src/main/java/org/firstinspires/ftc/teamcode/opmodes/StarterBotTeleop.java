@@ -32,21 +32,11 @@
 
 package org.firstinspires.ftc.teamcode.opmodes;
 
-import static com.qualcomm.robotcore.hardware.DcMotor.ZeroPowerBehavior.BRAKE;
-
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
+import com.pedropathing.geometry.Pose;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.hardware.CRServo;
-import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorEx;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
-import com.qualcomm.robotcore.hardware.PIDFCoefficients;
-import com.qualcomm.robotcore.hardware.Servo;
-import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.mechanisms.Launcher;
-import org.firstinspires.ftc.teamcode.mechanisms.PinpointOdometry;
 import org.firstinspires.ftc.teamcode.mechanisms.TankDrive;
 
 /*
@@ -76,7 +66,7 @@ public class StarterBotTeleop extends OpMode {
     TankDrive tankDrive = new TankDrive();
     Launcher launcher = new Launcher();
 
-    PinpointOdometry odo = new PinpointOdometry();
+    //PinpointOdometry odo = new PinpointOdometry();
     /*
      * Code to run ONCE when the driver hits INIT
      */
@@ -84,7 +74,7 @@ public class StarterBotTeleop extends OpMode {
     public void init() {
         tankDrive.init(hardwareMap);
         launcher.init(hardwareMap);
-        odo.init(hardwareMap);
+        //odo.init(hardwareMap);
 
         wasPressed = false;
 
@@ -123,7 +113,7 @@ public class StarterBotTeleop extends OpMode {
          * both motors work to rotate the robot. Combinations of these inputs can be used to create
          * more complex maneuvers.
          */
-        odo.newUpdateOutNow();
+        //odo.newUpdateOutNow();
 
 
         if (gamepad1.dpad_left){
@@ -171,20 +161,20 @@ public class StarterBotTeleop extends OpMode {
         }
         launcher.updateState();
 
-        if(gamepad1.left_bumper){
-            odo.resetEverything();
-        }
-        if(odo.getX()==0){
-            homeAngle = 0;
-        }
-        else {
-            homeAngle = Math.toDegrees(Math.atan(odo.getY() / (odo.getX() - 500)));
-        }
-        telemetry.addData("homeangle",homeAngle);
-        if(gamepad1.right_trigger>=.25){
-            tankDrive.turn(homeAngle, -gamepad1.left_stick_y);
-        }
-        else
+//        if(gamepad1.left_bumper){
+//            odo.resetEverything();
+//        }
+//        if(odo.getX()==0){
+//            homeAngle = 0;
+//        }
+//        else {
+//            homeAngle = Math.toDegrees(Math.atan(odo.getY() / (odo.getX() - 500)));
+//        }
+//        telemetry.addData("homeangle",homeAngle);
+//        if(gamepad1.right_trigger>=.25){
+//            tankDrive.turn(homeAngle, -gamepad1.left_stick_y);
+//        }
+//        else
         {
             tankDrive.drive(-gamepad1.left_stick_y, gamepad1.right_stick_x);
         }
@@ -194,8 +184,8 @@ public class StarterBotTeleop extends OpMode {
          */
         telemetry.addData("State", launcher.getState());
         telemetry.addData("motorSpeed", launcher.launcherSpeed() / 28 * 60);
-        telemetry.addData("position","x (%.2f), y (%.2f)", odo.getX(), odo.getY());
-        telemetry.addData("heading", odo.getHeading());
+//        telemetry.addData("position","x (%.2f), y (%.2f)", odo.getX(), odo.getY());
+//        telemetry.addData("heading", odo.getHeading());
 
     }
 
