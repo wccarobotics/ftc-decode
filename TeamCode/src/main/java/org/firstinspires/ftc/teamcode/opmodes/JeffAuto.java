@@ -14,10 +14,35 @@ import org.firstinspires.ftc.teamcode.pedroPathing.PanelsDrawing;
 @Autonomous
 public class JeffAuto extends JeffBase {
 
-    private Pose scorePose = new Pose(61.4, 85, Math.toRadians(144)); // Scoring Pose of our robot. It is facing the goal at a -37 degree angle.
-    private Pose endPose = new Pose(72, 30, Math.toRadians(180)); // Ending Pose of robot
+    private Pose nearScorePose = new Pose(50, 90, Math.toRadians(144)); // near scoring Pose of our robot.
+    private Pose farScorePose = new Pose(72, 15, 0);
+    private Pose endPose = new Pose(30, 72, Math.toRadians(180)); // Ending Pose of robot
+
+    private enum Auto{
+        NEAR,
+        FAR
+    }
+    private Auto auto = Auto.NEAR;
 
     private CommandScheduler scheduler = new CommandScheduler();
+
+    @Override
+    public void init(){
+        super.init();
+    }
+    @Override
+    public void init_loop(){
+        super.init_loop();
+        if (gamepad1.dpadRightWasPressed()){
+            if (auto == Auto.NEAR){
+                auto = Auto.FAR;
+            }
+            else if (auto == Auto.FAR){
+                auto = Auto.NEAR;
+            }
+        }
+        telemetry.addData("Auto", auto);
+    }
 
 
 
@@ -27,40 +52,61 @@ public class JeffAuto extends JeffBase {
         super.start();
 
         if (currentAlliance == Alliance.RED){
-            scorePose = scorePose.mirror();
+            nearScorePose = nearScorePose.mirror();
             endPose = endPose.mirror();
         }
 
-
-        // Build the autonomous command sequence
-        scheduler.schedule(new SequentialCommand(
-                new LineToCommand(follower, AimAt(scorePose, goalTarget)),
-                new ShootAllCommand(scoring),
-                new LineToCommand(follower, getSpikePose(1,-1)),
-                new InstantCommand(() -> scoring.intakeOn()),
-                new LineToCommand(follower, getSpikePose(1,1), 0.25),
-                new WaitCommand(.5),
-                new InstantCommand(() -> scoring.switchDiverter()),
-                new LineToCommand(follower, getSpikePose(1,3)),
-                new InstantCommand(() -> scoring.intakeOff()),
-                new LineToCommand(follower, AimAt(scorePose, goalTarget)),
-                new ShootAllCommand(scoring),
-                new LineToCommand(follower, getSpikePose(2,-1)),
-                new InstantCommand(() -> scoring.intakeOn()),
-                new LineToCommand(follower, getSpikePose(2,1), 0.25),
-                new WaitCommand(.5),
-                new InstantCommand(() -> scoring.switchDiverter()),
-                new LineToCommand(follower, getSpikePose(2,3)),
-                new InstantCommand(() -> scoring.intakeOff()),
-                new LineToCommand(follower, AimAt(scorePose, goalTarget)),
-                new ShootAllCommand(scoring),
-                new LineToCommand(follower, endPose)
-        ));
+        if (auto == Auto.NEAR) {
+            // Build the autonomous command sequence
+            scheduler.schedule(new SequentialCommand(
+//                new AimCommand(follower,vision, telemetry),
+//                new InstantCommand(()-> scoring.intakeOn())
+                    new LineToCommand(follower, AimAt(nearScorePose, goalTarget)),
+                    new ShootAllCommand(scoring, vision),
+                    new LineToCommand(follower, getSpikePose(1, -1)),
+                    new InstantCommand(() -> scoring.intakeOn()),
+                    new LineToCommand(follower, getSpikePose(1, 1), 0.25),
+                    new WaitCommand(.25),
+                    new InstantCommand(() -> scoring.switchDiverter()),
+                    new WaitCommand(.25),
+                    new LineToCommand(follower, getSpikePose(1, 3), 0.25),
+                    new InstantCommand(() -> scoring.intakeOff()),
+                    new LineToCommand(follower, AimAt(nearScorePose, goalTarget)),
+                    new ShootAllCommand(scoring, vision),
+                    new LineToCommand(follower, getSpikePose(2, -1)),
+                    new InstantCommand(() -> scoring.intakeOn()),
+                    new LineToCommand(follower, getSpikePose(2, 1), 0.25),
+                    new WaitCommand(.25),
+                    new InstantCommand(() -> scoring.switchDiverter()),
+                    new WaitCommand(.25),
+                    new LineToCommand(follower, getSpikePose(2, 3), 0.25),
+                    new InstantCommand(() -> scoring.intakeOff()),
+                    new LineToCommand(follower, AimAt(nearScorePose, goalTarget)),
+                    new ShootAllCommand(scoring, vision),
+                    new LineToCommand(follower, endPose)
+            ));
+        }
+        else if (auto == Auto.FAR){
+            scheduler.schedule( new SequentialCommand(
+                    new InstantCommand(()-> scoring.setLaunchDistance()),
+                    new LineToCommand(follower, AimAt(farScorePose, goalTarget)),
+                    new ShootAllCommand(scoring,vision),
+                    new InstantCommand(() -> scoring.intakeOn()),
+                    new LineToCommand(follower, getSpikePose(3,-1)),
+                    new LineToCommand(follower, getSpikePose(3,1), .25),
+                    new InstantCommand(() -> scoring.switchDiverter()),
+                    new WaitCommand(.25),
+                    new LineToCommand(follower, getSpikePose(3,1),.25),
+                    new InstantCommand(() -> scoring.intakeOff()),
+                    new ShootAllCommand(scoring, vision)
+            ));
+        }
     }
 
     @Override
     public void loop() {
         follower.update();
+        vision.update();
         scoring.updateAll();
         PanelsDrawing.drawDebug(follower);
         scheduler.run();

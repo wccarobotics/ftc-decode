@@ -52,8 +52,6 @@ public class RobotIn3Days extends JeffBase {
 
     private boolean hasBalls = false;
     private boolean hadBalls = false;
-    private boolean rightBall = false;
-    private boolean leftBall = false;
     MechanumDrive mechanumDrive = new MechanumDrive();
 
     /*
@@ -66,6 +64,7 @@ public class RobotIn3Days extends JeffBase {
         follower.startTeleopDrive();
         resetRuntime();
         curTime = getRuntime();
+        scoring.closeLaunch();
 
     }
 
@@ -187,23 +186,13 @@ public class RobotIn3Days extends JeffBase {
         }
 
         // Auto diverter switching
-        if (scoring.rightBallDistance() < 6){
-            rightBall = true;
-        }
-        else rightBall = false;
-
-        if (scoring.leftBallDistance() < 6){
-            leftBall = true;
-        }
-        else leftBall = false;
-
-        if (rightBall || leftBall) {
+        if (scoring.rightBall() || scoring.leftBall()) {
             hasBalls = true;
-            if (!hadBalls && (rightBall ^ leftBall) && (scoring.intakeSpeed() > 30)) { // not the messiest If statement ive written, check out https://github.com/lsplaisted/missile/blob/main/missile.py for many long If statements and few comments
-                if (rightBall) {
+            if (!hadBalls && (scoring.rightBall() ^ scoring.leftBall()) && (scoring.intakeSpeed() > 0)) {
+                if (scoring.rightBall()) {
                     scoring.diverterRight();
                 }
-                if (leftBall) {
+                if (scoring.leftBall()) {
                     scoring.diverterLeft();
                 }
                 hadBalls = true;

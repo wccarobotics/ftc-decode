@@ -7,7 +7,6 @@ import com.bylazar.telemetry.PanelsTelemetry;
 import com.bylazar.telemetry.TelemetryManager;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.Pose;
-import com.qualcomm.hardware.sparkfun.SparkFunOTOS;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 
 import org.firstinspires.ftc.teamcode.mechanisms.LimelightVision;
@@ -26,13 +25,13 @@ public abstract class JeffBase extends OpMode {
 
     protected LimelightVision vision = new LimelightVision();
 
-    protected enum Alliance{
+    public enum Alliance{
         BLUE,
         RED
     }
-    protected Alliance currentAlliance = Alliance.BLUE;
+    public static Alliance currentAlliance = Alliance.BLUE;
 
-    protected Pose goalTarget = new Pose(0, 138);
+    protected Pose goalTarget = new Pose(0, 136);
 
     protected Pose savedPose;
 
@@ -68,7 +67,7 @@ public abstract class JeffBase extends OpMode {
         poseOptions.add(new PoseOption("Saved Pose", savedPose, false));
         poseOptions.add(new PoseOption("Center of Field", new Pose(72, 72, 0), false));
         poseOptions.add(new PoseOption("Near", new Pose(22.6,128.4, Math.toRadians(144)), true));
-        poseOptions.add(new PoseOption("Far", new Pose(9, 83, Math.toRadians(90)), true));
+        poseOptions.add(new PoseOption("Far", new Pose(56, 8, Math.toRadians(90)), true));
 
 
         telemetry.addData("Status", "Initialized");

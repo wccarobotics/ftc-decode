@@ -18,6 +18,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
 public class ScoringRI3D {
     final double FEED_TIME_SECONDS = 1; //The feeder servos run this long when a shot is requested.
+    final double FEED_DELAY = .25; //time before feeders turn off after ball is gone
     final double STOP_SPEED = 0.0; //We send this power to the servos when we want them to stop.
     final double FULL_SPEED = 1.0;
 
@@ -46,11 +47,15 @@ public class ScoringRI3D {
     private Servo diverter = null;
 
     private RevColorSensorV3 leftColorSensor = null;
-
     private RevColorSensorV3 rightColorSensor = null;
+    private RevColorSensorV3 leftFrontColorSensor = null;
+    private RevColorSensorV3 rightFrontColorSensor = null;
 
     ElapsedTime leftFeederTimer = new ElapsedTime();
     ElapsedTime rightFeederTimer = new ElapsedTime();
+
+    ElapsedTime rightBallTimer = new ElapsedTime();
+    ElapsedTime leftBallTimer = new ElapsedTime();
 
     public enum LaunchState {
         IDLE,
@@ -95,6 +100,8 @@ public class ScoringRI3D {
         diverter = hardwareMap.get(Servo.class, "diverter");
         leftColorSensor = hardwareMap.get(RevColorSensorV3.class, "color_left");
         rightColorSensor = hardwareMap.get(RevColorSensorV3.class, "color_right");
+        leftFrontColorSensor = hardwareMap.get(RevColorSensorV3.class, "color_left_front");
+        rightFrontColorSensor = hardwareMap.get(RevColorSensorV3.class, "color_left_front");
 
 
         leftLauncher.setDirection(DcMotorSimple.Direction.REVERSE);
@@ -170,6 +177,19 @@ public class ScoringRI3D {
     public void switchIntake(){
         reverseIntake = !reverseIntake;
     }
+    public void forwardIntake(){}
+    public void intakeOff(){
+        intake.setPower(0);
+        intakeState = IntakeState.OFF;
+    }
+    public void intakeOn() {
+        double intakePower = reverseIntake ? -1 : 1;
+        intake.setPower(intakePower);
+        intakeState = IntakeState.ON;
+    }
+    public void setIntakeSpeed(double speed){
+        intake.setPower(speed);
+    }
     public double intakeSpeed(){
         return intake.getVelocity();
     }
@@ -186,6 +206,11 @@ public class ScoringRI3D {
                 launcherMin = LAUNCHER_CLOSE_MIN_VELOCITY;
                 break;
         }
+    }
+    public void closeLaunch(){
+        launcherDistance = LauncherDistance.CLOSE;
+        launcherTarget = LAUNCHER_CLOSE_TARGET_VELOCITY;
+        launcherMin = LAUNCHER_CLOSE_MIN_VELOCITY;
     }
     public LauncherDistance getLauncherDistance() {
         return launcherDistance;
@@ -231,7 +256,7 @@ public class ScoringRI3D {
                 leftLaunchState = LaunchState.LAUNCHING;
                 break;
             case LAUNCHING:
-                if (leftFeederTimer.seconds() > FEED_TIME_SECONDS) {
+                if ((leftFeederTimer.seconds() > FEED_TIME_SECONDS * 3) || leftBallDelay()) {
                     leftLaunchState = LaunchState.IDLE;
                     leftFeeder.setPower(STOP_SPEED);
                 }
@@ -261,7 +286,7 @@ public class ScoringRI3D {
                 rightLaunchState = LaunchState.LAUNCHING;
                 break;
             case LAUNCHING:
-                if (rightFeederTimer.seconds() > FEED_TIME_SECONDS) {
+                if ((rightFeederTimer.seconds() > FEED_TIME_SECONDS * 3) || rightBallDelay()) {
                     rightLaunchState = LaunchState.IDLE;
                     rightFeeder.setPower(STOP_SPEED);
                 }
@@ -276,6 +301,17 @@ public class ScoringRI3D {
         return rightLaunchState;
     }
 
+    public boolean leftBallDelay(){
+        boolean canShoot = false;
+        if (leftBall()){
+            leftBallTimer.reset();
+            canShoot = false;
+        }
+        else if (!leftBall() && leftBallTimer.seconds() >= FEED_DELAY){
+            canShoot = true;
+        }
+        return canShoot;
+    }
     public double flyWheelSpeed(){
         return (leftLauncher.getVelocity() + rightLauncher.getVelocity()) / 2;
     }
@@ -283,8 +319,25 @@ public class ScoringRI3D {
     public double leftBallDistance(){
         return leftColorSensor.getDistance(DistanceUnit.CM);
     }
+    public boolean leftBall(){
+        return (leftBallDistance() < 6);
+    }
+    public boolean rightBallDelay(){
+        boolean canShoot = false;
+        if (rightBall()){
+            rightBallTimer.reset();
+            canShoot = false;
+        }
+        else if (!rightBall() && rightBallTimer.seconds() >= FEED_DELAY){
+            canShoot = true;
+        }
+        return canShoot;
+    }
     public double rightBallDistance(){
         return rightColorSensor.getDistance(DistanceUnit.CM);
+    }
+    public boolean rightBall(){
+        return (rightBallDistance() < 6);
     }
     public void updateAll(){
         updateFlyWheels();
@@ -300,7 +353,7 @@ public class ScoringRI3D {
                 normColor.green + ", " + normColor.blue+ ", " +
                 normColor.alpha);
         telemetry.addData("Left proximity", leftColorSensor.getDistance(DistanceUnit.CM));
-
-
+        telemetry.addData("Right Proximity", rightColorSensor.getDistance(DistanceUnit.CM));
+        telemetry.addData("Left Front Proximity", leftFrontColorSensor.getDistance(DistanceUnit.CM));
     }
 }
