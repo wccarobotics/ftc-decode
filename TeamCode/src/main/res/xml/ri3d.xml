@@ -6,6 +6,7 @@
             <goBILDA5202SeriesMotor name="left_flywheel" port="1" />
             <goBILDA5202SeriesMotor name="intake" port="2" />
             <Servo name="diverter" port="0" />
+            <Servo name="right_status_light" port="4" />
             <ContinuousRotationServo name="right_feeder" port="2" />
             <RevColorSensorV3 name="color_right" port="0" bus="1" />
             <RevColorSensorV3 name="color_right_front" port="0" bus="2" />
@@ -16,6 +17,8 @@
             <goBILDA5202SeriesMotor name="left_front_drive" port="2" />
             <goBILDA5202SeriesMotor name="right_front_drive" port="3" />
             <ContinuousRotationServo name="left_feeder" port="0" />
+            <Servo name="center_status_light" port="2" />
+            <Servo name="left_status_light" port="4" />
             <ControlHubImuBHI260AP name="imu" port="0" bus="0" />
             <goBILDAPinpoint name="odo" port="0" bus="0" />
             <RevColorSensorV3 name="color_left" port="0" bus="1" />

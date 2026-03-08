@@ -9,6 +9,7 @@ import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.Pose;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 
+import org.firstinspires.ftc.teamcode.mechanisms.Lights;
 import org.firstinspires.ftc.teamcode.mechanisms.LimelightVision;
 import org.firstinspires.ftc.teamcode.mechanisms.ScoringRI3D;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
@@ -21,6 +22,7 @@ public abstract class JeffBase extends OpMode {
     protected SharedPreferences prefs;
     protected ScoringRI3D scoring = new ScoringRI3D();
     protected Follower follower;
+    protected Lights lights = new Lights();
     protected TelemetryManager telemetryM;
 
     protected LimelightVision vision = new LimelightVision();
@@ -60,8 +62,13 @@ public abstract class JeffBase extends OpMode {
         PanelsDrawing.init();
         scoring.init(hardwareMap, telemetry);
         vision.init(hardwareMap, follower, telemetry);
+        lights.init(hardwareMap);
         prefs = hardwareMap.appContext.getSharedPreferences("FTCData", Context.MODE_PRIVATE);
         load();
+        if (currentAlliance == Alliance.BLUE){
+            lights.setAll(.611);
+        }
+        else lights.setAll(.28);
 
         poseOptions = new ArrayList<>();
         poseOptions.add(new PoseOption("Saved Pose", savedPose, false));
@@ -95,9 +102,11 @@ public abstract class JeffBase extends OpMode {
         if (gamepad1.yWasPressed()){
             if (currentAlliance == Alliance.BLUE){
                 currentAlliance = Alliance.RED;
+                lights.setAll(.28);
             }
             else {
                 currentAlliance = Alliance.BLUE;
+                lights.setAll(.611);
             }
         }
 
