@@ -2,6 +2,8 @@ package org.firstinspires.ftc.teamcode.mechanisms;
 
 import static com.qualcomm.robotcore.hardware.DcMotor.ZeroPowerBehavior.BRAKE;
 
+import android.graphics.Color;
+
 import com.qualcomm.hardware.rev.RevColorSensorV3;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -322,6 +324,11 @@ public class ScoringRI3D {
     public boolean leftBall(){
         return (leftBallDistance() < 6);
     }
+    public double leftBallColor(){ // green averages 160 in home at night, purple is 227 at home during night
+        float [] hsv = new float[3];
+        Color.RGBToHSV(leftColorSensor.red(), leftColorSensor.green(), leftColorSensor.blue(), hsv);
+        return hsv[0];
+    }
     public boolean rightBallDelay(){
         boolean canShoot = false;
         if (rightBall()){
@@ -338,6 +345,17 @@ public class ScoringRI3D {
     }
     public boolean rightBall(){
         return (rightBallDistance() < 6);
+    }
+    public double rightBallColor(){ // green averages 160 in home at night, purple is 227 at home during night
+        float [] hsv = new float[3];
+        Color.RGBToHSV(rightColorSensor.red(), rightColorSensor.green(), rightColorSensor.blue(), hsv);
+        return hsv[0];
+    }
+    public double frontBallDistance(){
+        if (diverterDirection == DiverterDirection.LEFT){
+            return rightFrontColorSensor.getDistance(DistanceUnit.CM);
+        }
+        else return 1;
     }
     public void updateAll(){
         updateFlyWheels();

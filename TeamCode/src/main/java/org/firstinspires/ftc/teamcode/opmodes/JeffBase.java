@@ -62,7 +62,7 @@ public abstract class JeffBase extends OpMode {
         PanelsDrawing.init();
         scoring.init(hardwareMap, telemetry);
         vision.init(hardwareMap, follower, telemetry);
-        lights.init(hardwareMap);
+        lights.init(hardwareMap, scoring);
         prefs = hardwareMap.appContext.getSharedPreferences("FTCData", Context.MODE_PRIVATE);
         load();
         if (currentAlliance == Alliance.BLUE){
@@ -133,6 +133,7 @@ public abstract class JeffBase extends OpMode {
     @Override
     public void start()
     {
+        lights.start(currentAlliance);
         PoseOption startingPoseOption = poseOptions.get(selectedPoseIndex);
 
         Pose startingPose = startingPoseOption.pose;
@@ -154,6 +155,11 @@ public abstract class JeffBase extends OpMode {
     {
         double targetHeading = Math.atan2(target.getY() - pose.getY(), target.getX() - pose.getX());
         return pose.withHeading(targetHeading);
+    }
+
+    @Override
+    public void loop(){
+        lights.ballColors();
     }
 
     @Override

@@ -73,6 +73,7 @@ public class RobotIn3Days extends JeffBase {
      */
     @Override
     public void loop() {
+            super.loop();
 
             double forward = mechanumDrive.squareInputWithSign(-gamepad1.left_stick_y);
             double strafe = mechanumDrive.squareInputWithSign(-gamepad1.left_stick_x);
@@ -210,6 +211,7 @@ public class RobotIn3Days extends JeffBase {
         telemetry.addData("launch distance", scoring.getLauncherDistance());
         telemetry.addData("Diverter position", scoring.diverterPose());
         telemetry.addData("Intake state", scoring.intakeSpeed());
+        telemetry.addData("left ball hue", scoring.leftBallColor());
 
     }
 
