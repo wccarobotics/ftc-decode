@@ -9,6 +9,7 @@ import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.Pose;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 
+import org.firstinspires.ftc.teamcode.LoopTimer;
 import org.firstinspires.ftc.teamcode.mechanisms.Lights;
 import org.firstinspires.ftc.teamcode.mechanisms.LimelightVision;
 import org.firstinspires.ftc.teamcode.mechanisms.ScoringRI3D;
@@ -26,6 +27,7 @@ public abstract class JeffBase extends OpMode {
     protected TelemetryManager telemetryM;
 
     protected LimelightVision vision = new LimelightVision();
+    protected LoopTimer loopTimer = new LoopTimer();
 
     public enum Alliance{
         BLUE,
@@ -159,7 +161,10 @@ public abstract class JeffBase extends OpMode {
 
     @Override
     public void loop(){
+        loopTimer.update();
         lights.ballColors();
+        telemetry.addData("Loop (ms)", "avg %.1f / min %.1f / max %.1f",
+                loopTimer.getAvgMs(), loopTimer.getMinMs(), loopTimer.getMaxMs());
     }
 
     @Override
