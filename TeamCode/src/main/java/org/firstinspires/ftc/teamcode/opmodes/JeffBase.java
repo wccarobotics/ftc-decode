@@ -33,7 +33,7 @@ public abstract class JeffBase extends OpMode {
     }
     public static Alliance currentAlliance = Alliance.BLUE;
 
-    protected Pose goalTarget = new Pose(0, 136);
+    protected Pose goalTarget = new Pose(0, 130);
 
     protected Pose savedPose;
 
@@ -73,7 +73,7 @@ public abstract class JeffBase extends OpMode {
         poseOptions = new ArrayList<>();
         poseOptions.add(new PoseOption("Saved Pose", savedPose, false));
         poseOptions.add(new PoseOption("Center of Field", new Pose(72, 72, 0), false));
-        poseOptions.add(new PoseOption("Near", new Pose(22.6,128.4, Math.toRadians(144)), true));
+        poseOptions.add(new PoseOption("Near", new Pose(31.6,131.2, Math.toRadians(-180)), true));
         poseOptions.add(new PoseOption("Far", new Pose(56, 8, Math.toRadians(90)), true));
 
 

@@ -12,14 +12,17 @@ public class LineToCommand extends Command {
 
     private final double maxPower;
 
+    private final boolean holdEnd;
+
     public LineToCommand(Follower follower, Pose endPose)
     {
-        this(follower, endPose, 1.0);
+        this(follower, endPose, 1.0, true);
     }
-    public LineToCommand(Follower follower, Pose endPose, double maxPower) {
+    public LineToCommand(Follower follower, Pose endPose, double maxPower, boolean holdEnd) {
         this.follower = follower;
         this.endPose = endPose;
         this.maxPower = maxPower;
+        this.holdEnd = holdEnd;
     }
 
     @Override
@@ -31,7 +34,7 @@ public class LineToCommand extends Command {
 
         PathChain pathChain = follower.pathBuilder().addPath(path).build();
 
-        follower.followPath(pathChain, maxPower, false);
+        follower.followPath(pathChain, maxPower, true);
     }
 
     @Override

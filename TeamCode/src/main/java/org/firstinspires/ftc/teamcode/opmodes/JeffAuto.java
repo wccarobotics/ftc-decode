@@ -57,6 +57,33 @@ public class JeffAuto extends JeffBase {
         }
 
         if (auto == Auto.NEAR) {
+//            scheduler.schedule(new SequentialCommand(
+//                    new LineToCommand(follower, AimAt(nearScorePose, goalTarget)),
+//                    new WaitCommand(2),
+//                    new LineToCommand(follower, getSpikePose(1, -1)),
+//                    new WaitCommand(2),
+//                    new LineToCommand(follower, AimAt(nearScorePose, goalTarget)),
+//                    new WaitCommand(2),
+//                    new LineToCommand(follower, getSpikePose(3, -1)),
+//                    new WaitCommand(2),
+//                    new LineToCommand(follower, AimAt(nearScorePose, goalTarget)),
+//                    new WaitCommand(2),
+//                    new LineToCommand(follower, getSpikePose(1, -1)),
+//                    new WaitCommand(2),new LineToCommand(follower, AimAt(nearScorePose, goalTarget)),
+//                    new WaitCommand(2),
+//                    new LineToCommand(follower, getSpikePose(3, -1)),
+//                    new WaitCommand(2),new LineToCommand(follower, AimAt(nearScorePose, goalTarget)),
+//                    new WaitCommand(2),
+//                    new LineToCommand(follower, getSpikePose(1, -1)),
+//                    new WaitCommand(2),new LineToCommand(follower, AimAt(nearScorePose, goalTarget)),
+//                    new WaitCommand(2),
+//                    new LineToCommand(follower, getSpikePose(3, -1)),
+//                    new WaitCommand(2),new LineToCommand(follower, AimAt(nearScorePose, goalTarget)),
+//                    new WaitCommand(2),
+//                    new LineToCommand(follower, getSpikePose(1, -1)),
+//                    new WaitCommand(2)
+//            ));
+
             // Build the autonomous command sequence
             scheduler.schedule(new SequentialCommand(
 //                new AimCommand(follower,vision, telemetry),
@@ -65,21 +92,21 @@ public class JeffAuto extends JeffBase {
                     new ShootAllCommand(scoring, vision),
                     new LineToCommand(follower, getSpikePose(1, -1)),
                     new InstantCommand(() -> scoring.intakeOn()),
-                    new LineToCommand(follower, getSpikePose(1, 1), 0.25),
+                    new LineToCommand(follower, getSpikePose(1, 1), 0.25, true),
                     new WaitCommand(.25),
                     new InstantCommand(() -> scoring.switchDiverter()),
                     new WaitCommand(.25),
-                    new LineToCommand(follower, getSpikePose(1, 3), 0.25),
+                    new LineToCommand(follower, getSpikePose(1, 3), 0.25, true),
                     new InstantCommand(() -> scoring.intakeOff()),
                     new LineToCommand(follower, AimAt(nearScorePose, goalTarget)),
                     new ShootAllCommand(scoring, vision),
                     new LineToCommand(follower, getSpikePose(2, -1)),
                     new InstantCommand(() -> scoring.intakeOn()),
-                    new LineToCommand(follower, getSpikePose(2, 1), 0.25),
+                    new LineToCommand(follower, getSpikePose(2, 1), 0.25, true),
                     new WaitCommand(.25),
                     new InstantCommand(() -> scoring.switchDiverter()),
                     new WaitCommand(.25),
-                    new LineToCommand(follower, getSpikePose(2, 3), 0.25),
+                    new LineToCommand(follower, getSpikePose(2, 3), 0.25, true),
                     new InstantCommand(() -> scoring.intakeOff()),
                     new LineToCommand(follower, AimAt(nearScorePose, goalTarget)),
                     new ShootAllCommand(scoring, vision),
@@ -93,10 +120,10 @@ public class JeffAuto extends JeffBase {
                     new ShootAllCommand(scoring,vision),
                     new InstantCommand(() -> scoring.intakeOn()),
                     new LineToCommand(follower, getSpikePose(3,-1)),
-                    new LineToCommand(follower, getSpikePose(3,1), .25),
+                    new LineToCommand(follower, getSpikePose(3,1), .25, true),
                     new InstantCommand(() -> scoring.switchDiverter()),
                     new WaitCommand(.25),
-                    new LineToCommand(follower, getSpikePose(3,1),.25),
+                    new LineToCommand(follower, getSpikePose(3,1),.25, true),
                     new InstantCommand(() -> scoring.intakeOff()),
                     new ShootAllCommand(scoring, vision)
             ));
@@ -134,7 +161,7 @@ public class JeffAuto extends JeffBase {
             y = 34;
         }
         if (ball == -1){
-            x = 50;
+            x = 41;
         }
         Pose pose = new Pose(x, y, Math.toRadians(180));
         if (currentAlliance == Alliance.RED){
