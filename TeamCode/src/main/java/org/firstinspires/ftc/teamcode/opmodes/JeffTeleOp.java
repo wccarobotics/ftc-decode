@@ -35,7 +35,7 @@ import org.firstinspires.ftc.teamcode.pedroPathing.PanelsDrawing;
  * 2025-2026 FIRST® Tech Challenge season DECODE™!
  */
 
-@TeleOp(name = "DECODE Ri3D", group = "StarterBot")
+@TeleOp
 //@Disabled
 public class JeffTeleOp extends JeffBase {
     // Declare OpMode members.

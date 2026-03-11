@@ -175,8 +175,13 @@ public abstract class JeffBase extends OpMode {
         for (LynxModule hub : allHubs) {
             hub.clearBulkCache();
         }
-        scoring.updateAll();
+
         loopTimer.update();
+        telemetry.addData("Loop (ms)", "avg %.1f / min %.1f / max %.1f",
+                loopTimer.getAvgMs(), loopTimer.getMinMs(), loopTimer.getMaxMs());
+
+        scoring.updateAll();
+
         if(scoring.rightBall() || scoring.leftBall()){
             hasBallBase = true;
         }
@@ -189,8 +194,7 @@ public abstract class JeffBase extends OpMode {
         else if (!scoring.rightBall() && ! scoring.leftBall()){
             pastBall = false;
             }
-        telemetry.addData("Loop (ms)", "avg %.1f / min %.1f / max %.1f",
-            loopTimer.getAvgMs(), loopTimer.getMinMs(), loopTimer.getMaxMs());
+
         if (!scoring.leftBall() && !scoring.rightBall()){
             hasBallBase = false;
         }
