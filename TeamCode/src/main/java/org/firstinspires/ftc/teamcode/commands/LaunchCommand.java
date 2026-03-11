@@ -1,6 +1,6 @@
 package org.firstinspires.ftc.teamcode.commands;
 
-import org.firstinspires.ftc.teamcode.mechanisms.ScoringRI3D;
+import org.firstinspires.ftc.teamcode.mechanisms.JeffScoring;
 
 /**
  * Initiates a launch on either the left or right launcher,
@@ -10,10 +10,10 @@ public class LaunchCommand extends Command {
 
     public enum Side { LEFT, RIGHT }
 
-    private final ScoringRI3D scoring;
+    private final JeffScoring scoring;
     private final Side side;
 
-    public LaunchCommand(ScoringRI3D scoring, Side side) {
+    public LaunchCommand(JeffScoring scoring, Side side) {
         this.scoring = scoring;
         this.side = side;
     }
@@ -30,9 +30,9 @@ public class LaunchCommand extends Command {
     @Override
     public boolean isFinished() {
         if (side == Side.LEFT) {
-            return scoring.getLeftLaunchState() == ScoringRI3D.LaunchState.IDLE;
+            return scoring.getLeftLaunchState() == JeffScoring.LaunchState.IDLE;
         } else {
-            return scoring.getRightLaunchState() == ScoringRI3D.LaunchState.IDLE;
+            return scoring.getRightLaunchState() == JeffScoring.LaunchState.IDLE;
         }
     }
 }

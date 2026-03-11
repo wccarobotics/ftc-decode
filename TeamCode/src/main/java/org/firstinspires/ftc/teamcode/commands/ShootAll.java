@@ -1,12 +1,11 @@
 package org.firstinspires.ftc.teamcode.commands;
 
-import com.pedropathing.follower.Follower;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-import org.firstinspires.ftc.teamcode.mechanisms.ScoringRI3D;
+import org.firstinspires.ftc.teamcode.mechanisms.JeffScoring;
 
 public class ShootAll extends Command {
-    private ScoringRI3D scoring;
+    private JeffScoring scoring;
     private boolean diverterWasLeft = false;
     private ElapsedTime time = new ElapsedTime();
     private enum ShotState{
@@ -19,7 +18,7 @@ public class ShootAll extends Command {
     }
     private ShotState shotState = ShotState.FIRSTLAUNCH;
 
-    public  ShootAll(ScoringRI3D scoring){
+    public  ShootAll(JeffScoring scoring){
         this.scoring = scoring;
     }
 
@@ -43,14 +42,14 @@ public class ShootAll extends Command {
                     shotState = ShotState.SECONDLAUNCH;
                     break;
                 case SECONDLAUNCH:
-                    if (scoring.getRightLaunchState() == ScoringRI3D.LaunchState.IDLE) {
+                    if (scoring.getRightLaunchState() == JeffScoring.LaunchState.IDLE) {
                         scoring.shootLeft();
                         shotState = ShotState.SWITCHDIVERTER;
                         time.reset();
                     }
                     break;
                 case SWITCHDIVERTER:
-                    if (scoring.getLeftLaunchState() == ScoringRI3D.LaunchState.IDLE) {
+                    if (scoring.getLeftLaunchState() == JeffScoring.LaunchState.IDLE) {
                         scoring.switchDiverter();
                         scoring.runIntake();
                         shotState = ShotState.THIRDLAUNCH;
@@ -63,7 +62,7 @@ public class ShootAll extends Command {
                     }
                     break;
                 case END:
-                    if (scoring.getRightLaunchState() == ScoringRI3D.LaunchState.IDLE) {
+                    if (scoring.getRightLaunchState() == JeffScoring.LaunchState.IDLE) {
                         scoring.switchIntake();
                         shotState = ShotState.REALEND;
                     }
@@ -74,13 +73,13 @@ public class ShootAll extends Command {
             switch (shotState){
                 case FIRSTLAUNCH:
                     scoring.shootLeft();
-                    if (scoring.getLeftLaunchState() == ScoringRI3D.LaunchState.IDLE){
+                    if (scoring.getLeftLaunchState() == JeffScoring.LaunchState.IDLE){
                         shotState = ShotState.SECONDLAUNCH;
                     }
                     break;
                 case SECONDLAUNCH:
                     scoring.shootRight();
-                    if (scoring.getRightLaunchState() == ScoringRI3D.LaunchState.IDLE){
+                    if (scoring.getRightLaunchState() == JeffScoring.LaunchState.IDLE){
                         shotState = ShotState.SWITCHDIVERTER;
                         time.reset();
                     }
@@ -94,7 +93,7 @@ public class ShootAll extends Command {
                     break;
                 case THIRDLAUNCH:
                     scoring.shootLeft();
-                    if (scoring.getLeftLaunchState() == ScoringRI3D.LaunchState.IDLE){
+                    if (scoring.getLeftLaunchState() == JeffScoring.LaunchState.IDLE){
                         scoring.switchIntake();
                         shotState = ShotState.END;
                     }

@@ -10,7 +10,6 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
-import com.qualcomm.robotcore.hardware.NormalizedRGBA;
 import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
@@ -18,10 +17,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
-import java.util.ArrayList;
-import java.util.List;
-
-public class ScoringRI3D {
+public class JeffScoring {
     final double FEED_TIME_SECONDS = 1; //The feeder servos run this long when a shot is requested.
     final double FEED_DELAY = .25; //time before feeders turn off after ball is gone
     final double STOP_SPEED = 0.0; //We send this power to the servos when we want them to stop.
@@ -37,6 +33,8 @@ public class ScoringRI3D {
     double launcherMin = LAUNCHER_CLOSE_MIN_VELOCITY;
 
     boolean reverseIntake = false;
+
+    double intakeVelocity;
 
     boolean launcherOn = false;
 
@@ -79,6 +77,8 @@ public class ScoringRI3D {
         RIGHT;
     }
     private DiverterDirection diverterDirection = DiverterDirection.LEFT;
+
+    private double diverterLocation;
 
     private enum IntakeState {
         ON,
@@ -167,7 +167,7 @@ public class ScoringRI3D {
         diverter.setPosition(diverter.getPosition() + change);
     }
     public double diverterPose(){
-        return diverter.getPosition();
+        return diverterLocation;
     }
     public void runIntake(){
         double intakePower = reverseIntake? -1: 1;
@@ -199,7 +199,7 @@ public class ScoringRI3D {
         intake.setPower(speed);
     }
     public double intakeSpeed(){
-        return intake.getVelocity();
+        return intakeVelocity;
     }
     public void setLaunchDistance(){
         switch (launcherDistance) {
@@ -369,6 +369,9 @@ public class ScoringRI3D {
         updateRightLauncher();
         leftDistance = leftColorSensor.getDistance(DistanceUnit.CM);
         rightDistance = rightColorSensor.getDistance((DistanceUnit.CM));
+
+        intakeVelocity = intake.getVelocity();
+        diverterLocation = diverter.getPosition();
 
 //        NormalizedRGBA normColor = leftColorSensor.getNormalizedColors();
 //

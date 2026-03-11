@@ -10,8 +10,8 @@ public class Lights {
     private Servo rightLight = null;
     private Servo leftLight = null;
     private JeffBase.Alliance alliance = null;
-    private ScoringRI3D scoring = null;
-    public void init(HardwareMap hardwareMap, ScoringRI3D scoring){
+    private JeffScoring scoring = null;
+    public void init(HardwareMap hardwareMap, JeffScoring scoring){
         centerLight = hardwareMap.get(Servo.class, "center_status_light");
         rightLight = hardwareMap.get(Servo.class, "right_status_light");
         leftLight = hardwareMap.get(Servo.class, "left_status_light");

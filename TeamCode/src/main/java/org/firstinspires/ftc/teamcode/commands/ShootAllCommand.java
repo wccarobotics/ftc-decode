@@ -1,15 +1,14 @@
 package org.firstinspires.ftc.teamcode.commands;
 
 import org.firstinspires.ftc.teamcode.mechanisms.LimelightVision;
-import org.firstinspires.ftc.teamcode.mechanisms.ScoringRI3D;
-import org.firstinspires.ftc.teamcode.opmodes.JeffBase;
+import org.firstinspires.ftc.teamcode.mechanisms.JeffScoring;
 
 public class ShootAllCommand extends CommandCommand{
 
-    private ScoringRI3D scoring;
+    private JeffScoring scoring;
     private LimelightVision limelight;
 
-    public ShootAllCommand(ScoringRI3D scoring, LimelightVision limelight){
+    public ShootAllCommand(JeffScoring scoring, LimelightVision limelight){
         this.scoring = scoring;
         this.limelight = limelight;
     }
