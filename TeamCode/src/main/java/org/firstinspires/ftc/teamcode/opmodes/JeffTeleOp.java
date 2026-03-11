@@ -23,17 +23,11 @@
 
 package org.firstinspires.ftc.teamcode.opmodes;
 
-import com.bylazar.telemetry.PanelsTelemetry;
-import com.bylazar.telemetry.TelemetryManager;
-import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.Pose;
-import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.teamcode.mechanisms.LimelightVision;
 import org.firstinspires.ftc.teamcode.mechanisms.MechanumDrive;
-import org.firstinspires.ftc.teamcode.mechanisms.ScoringRI3D;
-import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 import org.firstinspires.ftc.teamcode.pedroPathing.PanelsDrawing;
 
 /*
@@ -43,7 +37,7 @@ import org.firstinspires.ftc.teamcode.pedroPathing.PanelsDrawing;
 
 @TeleOp(name = "DECODE Ri3D", group = "StarterBot")
 //@Disabled
-public class RobotIn3Days extends JeffBase {
+public class JeffTeleOp extends JeffBase {
     // Declare OpMode members.
 
     double lastTime = 0;
@@ -203,7 +197,6 @@ public class RobotIn3Days extends JeffBase {
             hasBalls = false;
             hadBalls = false;
         }
-        scoring.updateAll();
 
         /*
          * Show the state and motor powers
@@ -211,7 +204,6 @@ public class RobotIn3Days extends JeffBase {
         telemetry.addData("launch distance", scoring.getLauncherDistance());
         telemetry.addData("Diverter position", scoring.diverterPose());
         telemetry.addData("Intake state", scoring.intakeSpeed());
-        telemetry.addData("left ball hue", scoring.leftBallColor());
 
     }
 

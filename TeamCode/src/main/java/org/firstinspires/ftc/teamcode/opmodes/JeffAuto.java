@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode.opmodes;
 import com.pedropathing.geometry.Pose;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 
+import org.firstinspires.ftc.teamcode.commands.AimCommand;
 import org.firstinspires.ftc.teamcode.commands.CommandScheduler;
 import org.firstinspires.ftc.teamcode.commands.InstantCommand;
 import org.firstinspires.ftc.teamcode.commands.LineToCommand;
@@ -86,31 +87,30 @@ public class JeffAuto extends JeffBase {
 
             // Build the autonomous command sequence
             scheduler.schedule(new SequentialCommand(
-//                new AimCommand(follower,vision, telemetry),
-//                new InstantCommand(()-> scoring.intakeOn())
-                    new LineToCommand(follower, AimAt(nearScorePose, goalTarget)),
-                    new ShootAllCommand(scoring, vision),
-                    new LineToCommand(follower, getSpikePose(1, -1)),
-                    new InstantCommand(() -> scoring.intakeOn()),
-                    new LineToCommand(follower, getSpikePose(1, 1), 0.25, true),
-                    new WaitCommand(.25),
-                    new InstantCommand(() -> scoring.switchDiverter()),
-                    new WaitCommand(.25),
-                    new LineToCommand(follower, getSpikePose(1, 3), 0.25, true),
-                    new InstantCommand(() -> scoring.intakeOff()),
-                    new LineToCommand(follower, AimAt(nearScorePose, goalTarget)),
-                    new ShootAllCommand(scoring, vision),
-                    new LineToCommand(follower, getSpikePose(2, -1)),
-                    new InstantCommand(() -> scoring.intakeOn()),
-                    new LineToCommand(follower, getSpikePose(2, 1), 0.25, true),
-                    new WaitCommand(.25),
-                    new InstantCommand(() -> scoring.switchDiverter()),
-                    new WaitCommand(.25),
-                    new LineToCommand(follower, getSpikePose(2, 3), 0.25, true),
-                    new InstantCommand(() -> scoring.intakeOff()),
-                    new LineToCommand(follower, AimAt(nearScorePose, goalTarget)),
-                    new ShootAllCommand(scoring, vision),
-                    new LineToCommand(follower, endPose)
+                new InstantCommand(()-> telemetry.addLine("test"))
+//                    new LineToCommand(follower, AimAt(nearScorePose, goalTarget)),
+//                    new ShootAllCommand(scoring, vision),
+//                    new LineToCommand(follower, getSpikePose(1, -1)),
+//                    new InstantCommand(() -> scoring.intakeOn()),
+//                    new LineToCommand(follower, getSpikePose(1, 1), 0.25, true),
+//                    new WaitCommand(.25),
+//                    new InstantCommand(() -> scoring.switchDiverter()),
+//                    new WaitCommand(.25),
+//                    new LineToCommand(follower, getSpikePose(1, 3), 0.25, true),
+//                    new InstantCommand(() -> scoring.intakeOff()),
+//                    new LineToCommand(follower, AimAt(nearScorePose, goalTarget)),
+//                    new ShootAllCommand(scoring, vision),
+//                    new LineToCommand(follower, getSpikePose(2, -1)),
+//                    new InstantCommand(() -> scoring.intakeOn()),
+//                    new LineToCommand(follower, getSpikePose(2, 1), 0.25, true),
+//                    new WaitCommand(.25),
+//                    new InstantCommand(() -> scoring.switchDiverter()),
+//                    new WaitCommand(.25),
+//                    new LineToCommand(follower, getSpikePose(2, 3), 0.25, true),
+//                    new InstantCommand(() -> scoring.intakeOff()),
+//                    new LineToCommand(follower, AimAt(nearScorePose, goalTarget)),
+//                    new ShootAllCommand(scoring, vision),
+//                    new LineToCommand(follower, endPose)
             ));
         }
         else if (auto == Auto.FAR){
@@ -135,7 +135,6 @@ public class JeffAuto extends JeffBase {
         super.loop();
         follower.update();
         vision.update();
-        scoring.updateAll();
         PanelsDrawing.drawDebug(follower);
         scheduler.run();
     }

@@ -36,22 +36,24 @@ public class Lights {
     }
     public void ballColors(){
         if (scoring.leftBall()){ // changes the color of the light for the left ball
-            if (Math.abs(158 - scoring.leftBallColor()) < 10){
+            double leftBallColor = scoring.leftBallColor();
+            if (Math.abs(158 - leftBallColor) < 10){
                 leftColor(.47);
             }
-            else if (Math.abs(227 - scoring.leftBallColor()) < 10) {
+            else if (Math.abs(227 - leftBallColor) < 10) {
                 leftColor(.72);
             }
         }
-        else leftColor(alliance == JeffBase.Alliance.BLUE? .611: .28);
+        leftColor(alliance == JeffBase.Alliance.BLUE? .611: .28);
         if (scoring.rightBall()){
-            if (Math.abs(158 - scoring.rightBallColor()) < 10){
+            double rightBallColor = scoring.rightBallColor();
+            if (Math.abs(158 - rightBallColor) < 10){
                 rightColor(.47);
             }
-            else if (Math.abs(227 - scoring.rightBallColor()) < 10) {
+            else if (Math.abs(227 - rightBallColor) < 10) {
                 rightColor(.72);
             }
         }
-        else rightColor(alliance == JeffBase.Alliance.BLUE? .611: .28);
+        rightColor(alliance == JeffBase.Alliance.BLUE? .611: .28);
     }
 }

@@ -18,6 +18,9 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class ScoringRI3D {
     final double FEED_TIME_SECONDS = 1; //The feeder servos run this long when a shot is requested.
     final double FEED_DELAY = .25; //time before feeders turn off after ball is gone
@@ -39,6 +42,9 @@ public class ScoringRI3D {
 
     final double LEFT_POSITION = .35; //the left and right position for the diverter servo
     final double RIGHT_POSITION = .64;
+
+    private double leftDistance;
+    private double rightDistance;
 
     Telemetry telemetry = null;
     private DcMotorEx leftLauncher = null;
@@ -228,7 +234,7 @@ public class ScoringRI3D {
             rightLauncher.setVelocity(0);
         }
     }
-    public void updateFlyWheels(){
+    public void  updateFlyWheels(){
         if(launcherOn && ((leftLaunchState != LaunchState.LAUNCH) || (leftLaunchState != LaunchState.LAUNCHING)) && ((rightLaunchState != LaunchState.LAUNCH) || (rightLaunchState != LaunchState.LAUNCHING))){
             leftLauncher.setVelocity(launcherTarget);
             rightLauncher.setVelocity(launcherTarget);
@@ -319,7 +325,7 @@ public class ScoringRI3D {
     }
 
     public double leftBallDistance(){
-        return leftColorSensor.getDistance(DistanceUnit.CM);
+        return leftDistance;
     }
     public boolean leftBall(){
         return (leftBallDistance() < 6);
@@ -341,7 +347,7 @@ public class ScoringRI3D {
         return canShoot;
     }
     public double rightBallDistance(){
-        return rightColorSensor.getDistance(DistanceUnit.CM);
+        return rightDistance;
     }
     public boolean rightBall(){
         return (rightBallDistance() < 6);
@@ -361,17 +367,19 @@ public class ScoringRI3D {
         updateFlyWheels();
         updateLeftLauncher();
         updateRightLauncher();
+        leftDistance = leftColorSensor.getDistance(DistanceUnit.CM);
+        rightDistance = rightColorSensor.getDistance((DistanceUnit.CM));
 
-        NormalizedRGBA normColor = leftColorSensor.getNormalizedColors();
-
-        telemetry.addData("left_color", "" + leftColorSensor.red() + ", " +
-                leftColorSensor.green() + ", " + leftColorSensor.blue() + ", " +
-                leftColorSensor.alpha());
-        telemetry.addData("norm_color", "" + normColor.red + ", " +
-                normColor.green + ", " + normColor.blue+ ", " +
-                normColor.alpha);
-        telemetry.addData("Left proximity", leftColorSensor.getDistance(DistanceUnit.CM));
-        telemetry.addData("Right Proximity", rightColorSensor.getDistance(DistanceUnit.CM));
+//        NormalizedRGBA normColor = leftColorSensor.getNormalizedColors();
+//
+//        telemetry.addData("left_color", "" + leftColorSensor.red() + ", " +
+//                leftColorSensor.green() + ", " + leftColorSensor.blue() + ", " +
+//                leftColorSensor.alpha());
+//        telemetry.addData("norm_color", "" + normColor.red + ", " +
+//                normColor.green + ", " + normColor.blue+ ", " +
+//                normColor.alpha);
+        telemetry.addData("Left proximity", leftDistance);
+        telemetry.addData("Right Proximity", rightDistance);
         telemetry.addData("Left Front Proximity", leftFrontColorSensor.getDistance(DistanceUnit.CM));
     }
 }

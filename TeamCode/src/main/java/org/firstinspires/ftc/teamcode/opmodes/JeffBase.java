@@ -7,6 +7,7 @@ import com.bylazar.telemetry.PanelsTelemetry;
 import com.bylazar.telemetry.TelemetryManager;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.Pose;
+import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 
 import org.firstinspires.ftc.teamcode.LoopTimer;
@@ -17,13 +18,17 @@ import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 import org.firstinspires.ftc.teamcode.pedroPathing.PanelsDrawing;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public abstract class JeffBase extends OpMode {
 
     protected SharedPreferences prefs;
+    protected List<LynxModule> allHubs = null;
     protected ScoringRI3D scoring = new ScoringRI3D();
     protected Follower follower;
     protected Lights lights = new Lights();
+    protected boolean hasBallBase;
+    boolean pastBall = false;
     protected TelemetryManager telemetryM;
 
     protected LimelightVision vision = new LimelightVision();
@@ -58,7 +63,10 @@ public abstract class JeffBase extends OpMode {
 
     @Override
     public void init() {
-
+        allHubs = hardwareMap.getAll(LynxModule.class);
+        for (LynxModule hub : allHubs) {
+            hub.setBulkCachingMode(LynxModule.BulkCachingMode.MANUAL);
+        }
         follower = Constants.createFollower(hardwareMap);
         telemetryM = PanelsTelemetry.INSTANCE.getTelemetry();
         PanelsDrawing.init();
@@ -101,6 +109,9 @@ public abstract class JeffBase extends OpMode {
 
     @Override
     public void init_loop() {
+        for (LynxModule hub : allHubs) {
+            hub.clearBulkCache();
+        }
         if (gamepad1.yWasPressed()){
             if (currentAlliance == Alliance.BLUE){
                 currentAlliance = Alliance.RED;
@@ -161,10 +172,28 @@ public abstract class JeffBase extends OpMode {
 
     @Override
     public void loop(){
+        for (LynxModule hub : allHubs) {
+            hub.clearBulkCache();
+        }
+        scoring.updateAll();
         loopTimer.update();
-        lights.ballColors();
+        if(scoring.rightBall() || scoring.leftBall()){
+            hasBallBase = true;
+        }
+        if (hasBallBase ^ pastBall) {
+            lights.ballColors();
+        }
+        if(scoring.rightBall() || scoring.leftBall()) {
+            pastBall = true;
+        }
+        else if (!scoring.rightBall() && ! scoring.leftBall()){
+            pastBall = false;
+            }
         telemetry.addData("Loop (ms)", "avg %.1f / min %.1f / max %.1f",
-                loopTimer.getAvgMs(), loopTimer.getMinMs(), loopTimer.getMaxMs());
+            loopTimer.getAvgMs(), loopTimer.getMinMs(), loopTimer.getMaxMs());
+        if (!scoring.leftBall() && !scoring.rightBall()){
+            hasBallBase = false;
+        }
     }
 
     @Override
