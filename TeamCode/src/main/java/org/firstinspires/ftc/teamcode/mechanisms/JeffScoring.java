@@ -28,8 +28,6 @@ public class JeffScoring {
 
     boolean reverseIntake = false;
 
-    double intakeVelocity;
-
     final double LEFT_POSITION = .35; //the left and right position for the diverter servo
     final double RIGHT_POSITION = .64;
 
@@ -127,28 +125,38 @@ public class JeffScoring {
         leftLauncher.init(flywheel, leftFeeder);
         rightLauncher.init(flywheel, rightFeeder);
     }
+
+    void setDiverterPosition(double newPosition)
+    {
+        if (newPosition != diverterLocation)
+        {
+            diverter.setPosition(newPosition);
+            diverterLocation = newPosition;
+        }
+    }
+
     public void switchDiverter(){
         switch (diverterDirection) {
             case LEFT:
                 diverterDirection = DiverterDirection.RIGHT;
-                diverter.setPosition(RIGHT_POSITION);
+                setDiverterPosition(RIGHT_POSITION);
                 break;
             case RIGHT:
                 diverterDirection = DiverterDirection.LEFT;
-                diverter.setPosition(LEFT_POSITION);
+                setDiverterPosition(LEFT_POSITION);
                 break;
         }
     }
     public void diverterLeft(){
         diverterDirection = DiverterDirection.LEFT;
-        diverter.setPosition(LEFT_POSITION);
+        setDiverterPosition(LEFT_POSITION);
     }
     public void diverterRight(){
         diverterDirection = DiverterDirection.RIGHT;
-        diverter.setPosition(RIGHT_POSITION);
+        setDiverterPosition(RIGHT_POSITION);
     }
     public void changeDiverter(double change){
-        diverter.setPosition(diverter.getPosition() + change);
+        setDiverterPosition(diverterLocation + change);
     }
     public double diverterPose(){
         return diverterLocation;
@@ -182,8 +190,10 @@ public class JeffScoring {
     public void setIntakeSpeed(double speed){
         intake.setPower(speed);
     }
-    public double intakeSpeed(){
-        return intakeVelocity;
+
+    public boolean isIntakeOn()
+    {
+        return intakeState == IntakeState.ON;
     }
     public void setLaunchDistance(){
         switch (launcherDistance) {
@@ -258,9 +268,6 @@ public class JeffScoring {
         leftLauncher.update(leftDistance);
         rightLauncher.update(rightDistance);
 
-        intakeVelocity = intake.getVelocity();
-        diverterLocation = diverter.getPosition();
-
 //        NormalizedRGBA normColor = leftColorSensor.getNormalizedColors();
 //
 //        telemetry.addData("left_color", "" + leftColorSensor.red() + ", " +
@@ -269,9 +276,9 @@ public class JeffScoring {
 //        telemetry.addData("norm_color", "" + normColor.red + ", " +
 //                normColor.green + ", " + normColor.blue+ ", " +
 //                normColor.alpha);
-        telemetry.addData("Left proximity", leftDistance);
-        telemetry.addData("Right Proximity", rightDistance);
-        telemetry.addData("Left Front Proximity", leftFrontColorSensor.getDistance(DistanceUnit.CM));
+//        telemetry.addData("Left proximity", leftDistance);
+//        telemetry.addData("Right Proximity", rightDistance);
+        //telemetry.addData("Left Front Proximity", leftFrontColorSensor.getDistance(DistanceUnit.CM));
     }
 
     static class Flywheel

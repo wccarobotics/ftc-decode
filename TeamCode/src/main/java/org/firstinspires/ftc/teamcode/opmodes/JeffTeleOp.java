@@ -183,7 +183,7 @@ public class JeffTeleOp extends JeffBase {
         // Auto diverter switching
         if (scoring.rightBall() || scoring.leftBall()) {
             hasBalls = true;
-            if (!hadBalls && (scoring.rightBall() ^ scoring.leftBall()) && (scoring.intakeSpeed() > 0)) {
+            if (!hadBalls && (scoring.rightBall() ^ scoring.leftBall()) && (scoring.isIntakeOn())) {
                 if (scoring.rightBall()) {
                     scoring.diverterRight();
                 }
@@ -203,7 +203,7 @@ public class JeffTeleOp extends JeffBase {
          */
         telemetry.addData("launch distance", scoring.getLauncherDistance());
         telemetry.addData("Diverter position", scoring.diverterPose());
-        telemetry.addData("Intake state", scoring.intakeSpeed());
+        telemetry.addData("Intake state", scoring.isIntakeOn());
 
     }
 

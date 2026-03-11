@@ -6,28 +6,28 @@ import com.qualcomm.robotcore.hardware.Servo;
 import org.firstinspires.ftc.teamcode.opmodes.JeffBase;
 
 public class Lights {
-    private Servo centerLight = null;
-    private Servo rightLight = null;
-    private Servo leftLight = null;
+    private SingleLight centerLight = null;
+    private SingleLight rightLight = null;
+    private SingleLight leftLight = null;
     private JeffBase.Alliance alliance = null;
     private JeffScoring scoring = null;
     public void init(HardwareMap hardwareMap, JeffScoring scoring){
-        centerLight = hardwareMap.get(Servo.class, "center_status_light");
-        rightLight = hardwareMap.get(Servo.class, "right_status_light");
-        leftLight = hardwareMap.get(Servo.class, "left_status_light");
+        centerLight = new SingleLight(hardwareMap.get(Servo.class, "center_status_light"));
+        rightLight = new SingleLight(hardwareMap.get(Servo.class, "right_status_light"));
+        leftLight = new SingleLight(hardwareMap.get(Servo.class, "left_status_light"));
         this.scoring = scoring;
     }
     public void start(JeffBase.Alliance alliance){ // we put this in the start of the opmode because we need to know the alliance
         this.alliance = alliance;
     }
     public void centerColor(double color){
-        centerLight.setPosition(color);
+        centerLight.setColor(color);
     }
     public void rightColor(double color){
-        rightLight.setPosition(color);
+        rightLight.setColor(color);
     }
     public void leftColor(double color){
-        leftLight.setPosition(color);
+        leftLight.setColor(color);
     }
     public void setAll(double color){
         centerColor(color);
@@ -55,5 +55,25 @@ public class Lights {
             }
         }
         rightColor(alliance == JeffBase.Alliance.BLUE? .611: .28);
+    }
+
+    class SingleLight
+    {
+        private Servo light;
+        private double currentColor = -1;
+
+        public SingleLight(Servo light)
+        {
+            this.light = light;
+        }
+
+        public void setColor(double newColor)
+        {
+            if (newColor != currentColor)
+            {
+                light.setPosition(newColor);
+                currentColor = newColor;
+            }
+        }
     }
 }
