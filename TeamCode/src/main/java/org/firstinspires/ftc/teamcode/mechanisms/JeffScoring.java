@@ -43,6 +43,7 @@ public class JeffScoring {
     private RevColorSensorV3 rightColorSensor = null;
     private RevColorSensorV3 leftFrontColorSensor = null;
     private RevColorSensorV3 rightFrontColorSensor = null;
+    private ColorSensorCache sensorCache = new ColorSensorCache();
 
     public enum LaunchState {
         IDLE,
@@ -92,6 +93,8 @@ public class JeffScoring {
         rightColorSensor = hardwareMap.get(RevColorSensorV3.class, "color_right");
         leftFrontColorSensor = hardwareMap.get(RevColorSensorV3.class, "color_left_front");
         rightFrontColorSensor = hardwareMap.get(RevColorSensorV3.class, "color_left_front");
+
+        sensorCache = new ColorSensorCache();
 
 
         leftLauncherMotor.setDirection(DcMotorSimple.Direction.REVERSE);
@@ -256,15 +259,15 @@ public class JeffScoring {
     }
     public double frontBallDistance(){
         if (diverterDirection == DiverterDirection.LEFT){
-            return rightFrontColorSensor.getDistance(DistanceUnit.CM);
+            return sensorCache.getDistance(rightFrontColorSensor, DistanceUnit.CM);
         }
         else return 1;
     }
     public void updateAll(){
-        double leftDistance = leftColorSensor.getDistance(DistanceUnit.CM);
-        double rightDistance = rightColorSensor.getDistance((DistanceUnit.CM));
+        sensorCache.startLoop();
+        double leftDistance = sensorCache.getDistance(leftColorSensor, DistanceUnit.CM);
+        double rightDistance = sensorCache.getDistance(rightColorSensor, DistanceUnit.CM);
 
-        flywheel.update();
         leftLauncher.update(leftDistance);
         rightLauncher.update(rightDistance);
 
@@ -300,17 +303,13 @@ public class JeffScoring {
         public void start()
         {
             _launcherOn = true;
-            leftLauncher.setVelocity(_launcherTarget);
-            rightLauncher.setVelocity(_launcherTarget);
+            setVelocity();
         }
 
         public void stop()
         {
             _launcherOn = false;
-
-            leftLauncher.setVelocity(0);
-            rightLauncher.setVelocity(0);
-
+            setVelocity();
         }
 
         public boolean hasReachedMinSpeed()
@@ -322,12 +321,17 @@ public class JeffScoring {
         {
             _launcherTarget = target;
             _launcherMin = min;
+            setVelocity();
         }
 
-        public void update(){
+        private void setVelocity(){
             if(_launcherOn){
                 leftLauncher.setVelocity(_launcherTarget);
                 rightLauncher.setVelocity(_launcherTarget);
+            }
+            else {
+                leftLauncher.setVelocity(0);
+                rightLauncher.setVelocity(0);
             }
         }
 

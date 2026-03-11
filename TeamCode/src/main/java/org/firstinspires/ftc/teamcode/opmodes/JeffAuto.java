@@ -87,30 +87,29 @@ public class JeffAuto extends JeffBase {
 
             // Build the autonomous command sequence
             scheduler.schedule(new SequentialCommand(
-                new InstantCommand(()-> telemetry.addLine("test"))
-//                    new LineToCommand(follower, AimAt(nearScorePose, goalTarget)),
-//                    new ShootAllCommand(scoring, vision),
-//                    new LineToCommand(follower, getSpikePose(1, -1)),
-//                    new InstantCommand(() -> scoring.intakeOn()),
-//                    new LineToCommand(follower, getSpikePose(1, 1), 0.25, true),
-//                    new WaitCommand(.25),
-//                    new InstantCommand(() -> scoring.switchDiverter()),
-//                    new WaitCommand(.25),
-//                    new LineToCommand(follower, getSpikePose(1, 3), 0.25, true),
-//                    new InstantCommand(() -> scoring.intakeOff()),
-//                    new LineToCommand(follower, AimAt(nearScorePose, goalTarget)),
-//                    new ShootAllCommand(scoring, vision),
-//                    new LineToCommand(follower, getSpikePose(2, -1)),
-//                    new InstantCommand(() -> scoring.intakeOn()),
-//                    new LineToCommand(follower, getSpikePose(2, 1), 0.25, true),
-//                    new WaitCommand(.25),
-//                    new InstantCommand(() -> scoring.switchDiverter()),
-//                    new WaitCommand(.25),
-//                    new LineToCommand(follower, getSpikePose(2, 3), 0.25, true),
-//                    new InstantCommand(() -> scoring.intakeOff()),
-//                    new LineToCommand(follower, AimAt(nearScorePose, goalTarget)),
-//                    new ShootAllCommand(scoring, vision),
-//                    new LineToCommand(follower, endPose)
+                new LineToCommand(follower, AimAt(nearScorePose, goalTarget)),
+                new ShootAllCommand(scoring, vision),
+                new LineToCommand(follower, getSpikePose(1, -1)),
+                new InstantCommand(() -> scoring.intakeOn()),
+                new LineToCommand(follower, getSpikePose(1, 1), 0.25, true),
+                new WaitCommand(.25),
+                new InstantCommand(() -> scoring.switchDiverter()),
+                new WaitCommand(.25),
+                new LineToCommand(follower, getSpikePose(1, 3), 0.25, true),
+                new InstantCommand(() -> scoring.intakeOff()),
+                new LineToCommand(follower, AimAt(nearScorePose, goalTarget)),
+                new ShootAllCommand(scoring, vision),
+                new LineToCommand(follower, getSpikePose(2, -1)),
+                new InstantCommand(() -> scoring.intakeOn()),
+                new LineToCommand(follower, getSpikePose(2, 1), 0.25, true),
+                new WaitCommand(.25),
+                new InstantCommand(() -> scoring.switchDiverter()),
+                new WaitCommand(.25),
+                new LineToCommand(follower, getSpikePose(2, 3), 0.25, true),
+                new InstantCommand(() -> scoring.intakeOff()),
+                new LineToCommand(follower, AimAt(nearScorePose, goalTarget)),
+                new ShootAllCommand(scoring, vision),
+                new LineToCommand(follower, endPose)
             ));
         }
         else if (auto == Auto.FAR){

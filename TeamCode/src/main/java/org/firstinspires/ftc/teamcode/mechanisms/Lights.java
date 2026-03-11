@@ -44,7 +44,9 @@ public class Lights {
                 leftColor(.72);
             }
         }
-        leftColor(alliance == JeffBase.Alliance.BLUE? .611: .28);
+        else {
+            leftColor(alliance == JeffBase.Alliance.BLUE ? .611 : .28);
+        }
         if (scoring.rightBall()){
             double rightBallColor = scoring.rightBallColor();
             if (Math.abs(158 - rightBallColor) < 10){
@@ -54,7 +56,9 @@ public class Lights {
                 rightColor(.72);
             }
         }
-        rightColor(alliance == JeffBase.Alliance.BLUE? .611: .28);
+        else {
+            rightColor(alliance == JeffBase.Alliance.BLUE ? .611 : .28);
+        }
     }
 
     class SingleLight
