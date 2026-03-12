@@ -124,6 +124,12 @@ public class JeffScoring {
          */
         rightFeeder.setDirection(DcMotorSimple.Direction.REVERSE);
 
+
+        //  Default color saturation value is 65536, which means normalized color values are very small
+        //  Fix this so normalization works better
+        leftColorSensor.getParameters().colorSaturation = 255;
+        rightColorSensor.getParameters().colorSaturation = 255;
+
         flywheel.init(leftLauncherMotor, rightLauncherMotor);
 
         leftLauncher.init(flywheel, leftFeeder);
@@ -268,6 +274,16 @@ public class JeffScoring {
         }
         else return 1;
     }
+
+    NormalizedRGBA undoNormalization(NormalizedRGBA color, RevColorSensorV3 sensor)
+    {
+        NormalizedRGBA ret = new NormalizedRGBA();
+        float multiplier = sensor.getParameters().colorSaturation / sensor.getGain();
+        ret.red = color.red * multiplier;
+        ret.green = color.green * multiplier;
+        ret.blue = color.blue * multiplier;
+        return ret;
+    }
     public void updateAll(){
         sensorCache.startLoop();
         double leftDistance = sensorCache.getDistance(leftColorSensor, DistanceUnit.CM);
@@ -276,14 +292,31 @@ public class JeffScoring {
         leftLauncher.update(leftDistance);
         rightLauncher.update(rightDistance);
 
+//        int red = leftColorSensor.red();
+//        int green = leftColorSensor.green();
+//        int blue = leftColorSensor.blue();
+//        int alpha = leftColorSensor.alpha();
+//        float [] hsv = new float[3];
+//        Color.RGBToHSV(red, green, blue, hsv);
 //        NormalizedRGBA normColor = leftColorSensor.getNormalizedColors();
+//        normColor = undoNormalization(normColor, leftColorSensor);
+//        int normRed = (int) (normColor.red);
+//        int normGreen = (int) (normColor.green);
+//        int normBlue = (int) (normColor.blue);
+//        int normAlpha = (int) (normColor.alpha);
+//        float [] normHsv = new float[3];
+//        Color.RGBToHSV(normRed, normGreen, normBlue, normHsv);
 //
-//        telemetry.addData("left_color", "" + leftColorSensor.red() + ", " +
-//                leftColorSensor.green() + ", " + leftColorSensor.blue() + ", " +
-//                leftColorSensor.alpha());
-//        telemetry.addData("norm_color", "" + normColor.red + ", " +
-//                normColor.green + ", " + normColor.blue+ ", " +
-//                normColor.alpha);
+//        telemetry.addData("left_color", "" + red + ", " +
+//                green + ", " + blue+ ", " +
+//                alpha);
+//        telemetry.addData("norm_color", "" + normRed + ", " +
+//                normGreen + ", " + normBlue+ ", " +
+//                normAlpha);
+//        telemetry.addData("left hue", hsv[0]);
+//        telemetry.addData("left norm hue", normHsv[0]);
+//        telemetry.addData("color saturation parameter", leftColorSensor.getParameters().colorSaturation);
+//        telemetry.addData("gain", leftColorSensor.getGain());
 //        telemetry.addData("Left proximity", leftDistance);
 //        telemetry.addData("Right Proximity", rightDistance);
         //telemetry.addData("Left Front Proximity", leftFrontColorSensor.getDistance(DistanceUnit.CM));
