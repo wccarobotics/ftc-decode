@@ -246,7 +246,8 @@ public class JeffScoring {
     }
     public double leftBallColor(){ // green averages 160 in home at night, purple is 227 at home during night
         float[] hsv = new float[3];
-        NormalizedRGBA norm = leftColorSensor.getNormalizedColors();
+        NormalizedRGBA norm = sensorCache.getNormalizedColors(leftColorSensor);
+        if (norm == null) return 0;
         Color.RGBToHSV((int)(norm.red * 255), (int)(norm.green * 255), (int)(norm.blue * 255), hsv);
         return hsv[0];
     }
@@ -256,7 +257,8 @@ public class JeffScoring {
     }
     public double rightBallColor(){ // green averages 160 in home at night, purple is 227 at home during night
         float[] hsv = new float[3];
-        NormalizedRGBA norm = rightColorSensor.getNormalizedColors();
+        NormalizedRGBA norm = sensorCache.getNormalizedColors(rightColorSensor);
+        if (norm == null) return 0;
         Color.RGBToHSV((int)(norm.red * 255), (int)(norm.green * 255), (int)(norm.blue * 255), hsv);
         return hsv[0];
     }
