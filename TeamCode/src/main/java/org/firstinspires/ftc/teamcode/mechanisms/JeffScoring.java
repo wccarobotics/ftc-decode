@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode.mechanisms;
 import static com.qualcomm.robotcore.hardware.DcMotor.ZeroPowerBehavior.BRAKE;
 
 import android.graphics.Color;
+import com.qualcomm.robotcore.hardware.NormalizedRGBA;
 
 import com.qualcomm.hardware.rev.RevColorSensorV3;
 import com.qualcomm.robotcore.hardware.CRServo;
@@ -244,8 +245,9 @@ public class JeffScoring {
         return leftLauncher.seesBall();
     }
     public double leftBallColor(){ // green averages 160 in home at night, purple is 227 at home during night
-        float [] hsv = new float[3];
-        Color.RGBToHSV(leftColorSensor.red(), leftColorSensor.green(), leftColorSensor.blue(), hsv);
+        float[] hsv = new float[3];
+        NormalizedRGBA norm = leftColorSensor.getNormalizedColors();
+        Color.RGBToHSV((int)(norm.red * 255), (int)(norm.green * 255), (int)(norm.blue * 255), hsv);
         return hsv[0];
     }
 
@@ -253,8 +255,9 @@ public class JeffScoring {
         return rightLauncher.seesBall();
     }
     public double rightBallColor(){ // green averages 160 in home at night, purple is 227 at home during night
-        float [] hsv = new float[3];
-        Color.RGBToHSV(rightColorSensor.red(), rightColorSensor.green(), rightColorSensor.blue(), hsv);
+        float[] hsv = new float[3];
+        NormalizedRGBA norm = rightColorSensor.getNormalizedColors();
+        Color.RGBToHSV((int)(norm.red * 255), (int)(norm.green * 255), (int)(norm.blue * 255), hsv);
         return hsv[0];
     }
     public double frontBallDistance(){
