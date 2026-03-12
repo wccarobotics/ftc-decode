@@ -292,6 +292,9 @@ public class JeffScoring {
         leftLauncher.update(leftDistance);
         rightLauncher.update(rightDistance);
 
+        telemetry.addData("Sensor cache entries", sensorCache.getEntryCount());
+        telemetry.addData("Sensor cache staleness (ms)", sensorCache.getMaxStalenessMs());
+
 //        int red = leftColorSensor.red();
 //        int green = leftColorSensor.green();
 //        int blue = leftColorSensor.blue();
