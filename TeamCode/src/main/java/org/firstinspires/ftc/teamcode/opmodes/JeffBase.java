@@ -27,7 +27,7 @@ public abstract class JeffBase extends OpMode {
     protected JeffScoring scoring = new JeffScoring();
     protected Follower follower;
     protected Lights lights = new Lights();
-    protected TelemetryManager telemetryM;
+    //protected TelemetryManager telemetryM;
 
     protected LimelightVision vision = new LimelightVision();
     protected LoopTimer loopTimer = new LoopTimer();
@@ -66,10 +66,10 @@ public abstract class JeffBase extends OpMode {
             hub.setBulkCachingMode(LynxModule.BulkCachingMode.MANUAL);
         }
         follower = Constants.createFollower(hardwareMap);
-        telemetryM = PanelsTelemetry.INSTANCE.getTelemetry();
+        //telemetryM = PanelsTelemetry.INSTANCE.getTelemetry();
         PanelsDrawing.init();
         scoring.init(hardwareMap, telemetry);
-        vision.init(hardwareMap, follower, telemetry);
+        //vision.init(hardwareMap, follower, telemetry);
         lights.init(hardwareMap, scoring);
         prefs = hardwareMap.appContext.getSharedPreferences("FTCData", Context.MODE_PRIVATE);
         load();
@@ -178,6 +178,7 @@ public abstract class JeffBase extends OpMode {
         telemetry.addData("Loop (ms)", "avg %.1f / min %.1f / max %.1f",
                 loopTimer.getAvgMs(), loopTimer.getMinMs(), loopTimer.getMaxMs());
 
+        follower.update();
         scoring.updateAll();
         lights.ballColors();
 

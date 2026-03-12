@@ -132,8 +132,8 @@ public class JeffAuto extends JeffBase {
     @Override
     public void loop() {
         super.loop();
-        follower.update();
-        vision.update();
+        //follower.update();
+        //vision.update();
         PanelsDrawing.drawDebug(follower);
         scheduler.run();
     }

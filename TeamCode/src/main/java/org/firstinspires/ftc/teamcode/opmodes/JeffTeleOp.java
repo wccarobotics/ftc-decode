@@ -73,20 +73,19 @@ public class JeffTeleOp extends JeffBase {
             double strafe = mechanumDrive.squareInputWithSign(-gamepad1.left_stick_x);
             double turn = mechanumDrive.squareInputWithSign(-(gamepad1.right_trigger - gamepad1.left_trigger));
             double offsetHeading = currentAlliance == Alliance.BLUE? Math.toRadians(180): 0;
-            follower.update();
-            telemetryM.update();
+            //telemetryM.update();
 
-            PanelsDrawing.drawRobot(follower.getPose());
+            //PanelsDrawing.drawRobot(follower.getPose());
 
-            vision.update();
-            Pose limelightPose = vision.getLatestPose2(LimelightVision.HeadingSource.VISION);
+            //vision.update();
+            //Pose limelightPose = vision.getLatestPose2(LimelightVision.HeadingSource.VISION);
             //Pose limelightPose = vision.getLatestPose();
-            if (limelightPose != null) {
-                PanelsDrawing.drawRobot(limelightPose, PanelsDrawing.limelightLook);
-                telemetry.addData("camera", limelightPose.toString());
-            }
+//            if (limelightPose != null) {
+//                PanelsDrawing.drawRobot(limelightPose, PanelsDrawing.limelightLook);
+//                telemetry.addData("camera", limelightPose.toString());
+//            }
 
-            PanelsDrawing.sendPacket();
+            //PanelsDrawing.sendPacket();
 
             double targetX = 0;
             double targetY = 135;
@@ -133,10 +132,10 @@ public class JeffTeleOp extends JeffBase {
             follower.setTeleOpDrive(forward, strafe, turn, false, offsetHeading);
 
 
-            telemetry.addData("heading", Math.toDegrees(follower.getHeading()));
-            telemetry.addData("Xpose",follower.getPose().getX());
-            telemetry.addData("Ypose",follower.getPose().getY());
-            telemetry.addData("goal heading", Math.toDegrees(targetHeading));
+//            telemetry.addData("heading", Math.toDegrees(follower.getHeading()));
+//            telemetry.addData("Xpose",follower.getPose().getX());
+//            telemetry.addData("Ypose",follower.getPose().getY());
+//            telemetry.addData("goal heading", Math.toDegrees(targetHeading));
 
         /*
          * Here we give the user control of the speed of the launcher motor without automatically
