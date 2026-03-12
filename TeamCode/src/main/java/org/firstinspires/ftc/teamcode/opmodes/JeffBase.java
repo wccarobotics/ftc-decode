@@ -27,8 +27,6 @@ public abstract class JeffBase extends OpMode {
     protected JeffScoring scoring = new JeffScoring();
     protected Follower follower;
     protected Lights lights = new Lights();
-    protected boolean hasBallBase;
-    boolean pastBall = false;
     protected TelemetryManager telemetryM;
 
     protected LimelightVision vision = new LimelightVision();
@@ -181,23 +179,8 @@ public abstract class JeffBase extends OpMode {
                 loopTimer.getAvgMs(), loopTimer.getMinMs(), loopTimer.getMaxMs());
 
         scoring.updateAll();
+        lights.ballColors();
 
-        if(scoring.rightBall() || scoring.leftBall()){
-            hasBallBase = true;
-        }
-        if (hasBallBase ^ pastBall) {
-            lights.ballColors();
-        }
-        if(scoring.rightBall() || scoring.leftBall()) {
-            pastBall = true;
-        }
-        else if (!scoring.rightBall() && ! scoring.leftBall()){
-            pastBall = false;
-            }
-
-        if (!scoring.leftBall() && !scoring.rightBall()){
-            hasBallBase = false;
-        }
     }
 
     @Override
