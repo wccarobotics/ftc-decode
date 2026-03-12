@@ -4,131 +4,87 @@ import com.qualcomm.hardware.rev.RevColorSensorV3;
 import com.qualcomm.robotcore.hardware.NormalizedRGBA;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.List;
 
+/**
+ * Caches color sensor reads and refreshes one entry per update() call in
+ * round-robin order. Each sensor has separate entries for distance and color,
+ * so they are read independently. Sensors are auto-registered on first access.
+ */
 public class ColorSensorCache {
 
-    private static final long MIN_INTERVAL_MS = 100;
+    private enum ReadType { DISTANCE, COLOR }
 
-    private boolean hasReadThisLoop = false;
-
-    private enum ValueType { DISTANCE, NORMALIZED }
-
-    private static class Key {
+    private static class CacheEntry {
         final RevColorSensorV3 sensor;
-        final ValueType type;
+        final ReadType type;
+        double distanceCm = 0.0;
+        NormalizedRGBA colors = new NormalizedRGBA();
+        long lastReadMs = 0;
 
-        Key(RevColorSensorV3 sensor, ValueType type) {
+        CacheEntry(RevColorSensorV3 sensor, ReadType type) {
             this.sensor = sensor;
             this.type = type;
         }
 
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) return true;
-            if (!(o instanceof Key)) return false;
-            Key k = (Key) o;
-            return this.sensor == k.sensor && this.type == k.type;
+        void read() {
+            if (type == ReadType.DISTANCE) {
+                distanceCm = sensor.getDistance(DistanceUnit.CM);
+            } else {
+                NormalizedRGBA n = sensor.getNormalizedColors();
+                colors.red = n.red;
+                colors.green = n.green;
+                colors.blue = n.blue;
+                colors.alpha = n.alpha;
+            }
+            lastReadMs = System.currentTimeMillis();
         }
+    }
 
-        @Override
-        public int hashCode() {
-            return System.identityHashCode(sensor) * 31 + type.ordinal();
+    private final List<CacheEntry> entries = new ArrayList<>();
+    private int nextIndex = 0;
+
+    private CacheEntry findOrCreate(RevColorSensorV3 sensor, ReadType type) {
+        for (CacheEntry entry : entries) {
+            if (entry.sensor == sensor && entry.type == type) return entry;
         }
+        CacheEntry entry = new CacheEntry(sensor, type);
+        // First access: do an immediate read so callers get a real value
+        entry.read();
+        entries.add(entry);
+        return entry;
     }
 
-    private static class CacheEntry {
-        Object value = null; // Double for distance (CM), NormalizedRGBA for normalized
-        long lastReadMs = 0;
+    /** Call once per loop. Reads one entry from the round-robin rotation. */
+    public void update() {
+        if (entries.isEmpty()) return;
+
+        CacheEntry entry = entries.get(nextIndex);
+        entry.read();
+        nextIndex = (nextIndex + 1) % entries.size();
     }
 
-    private final Map<Key, CacheEntry> cache = new HashMap<>();
-
-    public void startLoop() {
-        hasReadThisLoop = false;
-    }
-
+    /** Get cached distance for a sensor. Auto-registers on first call. */
     public double getDistance(RevColorSensorV3 sensor, DistanceUnit unit) {
         if (sensor == null) return 0.0;
-
-        long now = System.currentTimeMillis();
-        Key distKey = new Key(sensor, ValueType.DISTANCE);
-        Key normKey = new Key(sensor, ValueType.NORMALIZED);
-
-        CacheEntry distEntry = cache.get(distKey);
-        CacheEntry normEntry = cache.get(normKey);
-
-        if (distEntry == null) {
-            distEntry = new CacheEntry();
-            cache.put(distKey, distEntry);
-        }
-        if (normEntry == null) {
-            normEntry = new CacheEntry();
-            cache.put(normKey, normEntry);
-        }
-
-        long distLastRead = distEntry.lastReadMs;
-        boolean enoughTimePassed = (now - distLastRead) >= MIN_INTERVAL_MS;
-
-        if (!hasReadThisLoop && enoughTimePassed) {
-            try {
-                double d = sensor.getDistance(DistanceUnit.CM);
-
-                // populate distance entry only (distance always in CM)
-                distEntry.value = d;
-                distEntry.lastReadMs = now;
-            } catch (Exception ignored) {
-            }
-            hasReadThisLoop = true;
-        }
-
-        Double cached = distEntry.value instanceof Double ? (Double) distEntry.value : null;
-        return cached == null ? 0.0 : cached;
+        return findOrCreate(sensor, ReadType.DISTANCE).distanceCm;
     }
 
+    /** Get cached normalized colors for a sensor. Auto-registers on first call. */
     public NormalizedRGBA getNormalizedColors(RevColorSensorV3 sensor) {
         if (sensor == null) return null;
-
-        long now = System.currentTimeMillis();
-        Key normKey = new Key(sensor, ValueType.NORMALIZED);
-        Key distKey = new Key(sensor, ValueType.DISTANCE);
-
-        CacheEntry normEntry = cache.get(normKey);
-        CacheEntry distEntry = cache.get(distKey);
-
-        if (normEntry == null) {
-            normEntry = new CacheEntry();
-            cache.put(normKey, normEntry);
-        }
-        if (distEntry == null) {
-            distEntry = new CacheEntry();
-            cache.put(distKey, distEntry);
-        }
-
-        long normLastRead = normEntry.lastReadMs;
-        boolean enoughTimePassed = (now - normLastRead) >= MIN_INTERVAL_MS;
-
-        if (!hasReadThisLoop && enoughTimePassed) {
-            try {
-                NormalizedRGBA n = sensor.getNormalizedColors();
-                NormalizedRGBA copy = new NormalizedRGBA();
-                copy.red = n.red;
-                copy.green = n.green;
-                copy.blue = n.blue;
-                copy.alpha = n.alpha;
-
-                // populate normalized entry only
-                normEntry.value = copy;
-                normEntry.lastReadMs = now;
-            } catch (Exception ignored) {
-            }
-            hasReadThisLoop = true;
-        }
-
-        return normEntry.value instanceof NormalizedRGBA ? (NormalizedRGBA) normEntry.value : null;
+        return findOrCreate(sensor, ReadType.COLOR).colors;
     }
 
-    
+    /** Number of entries in the round-robin rotation. */
+    public int getEntryCount() {
+        return entries.size();
+    }
 
+    /** Age in ms of the least-recently-updated entry, or 0 if empty. */
+    public long getMaxStalenessMs() {
+        if (entries.isEmpty()) return 0;
+        return System.currentTimeMillis() - entries.get(nextIndex).lastReadMs;
+    }
 }

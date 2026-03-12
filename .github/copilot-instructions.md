@@ -2,7 +2,7 @@
 
 ## Build
 
-This is an Android Gradle project (AGP 8.13.1, Gradle 8.13, FTC SDK 11.1.0). Source/target compatibility is Java 8. The Gradle JDK is Microsoft JDK 17 (`~/.jdks/ms-17.0.17`).
+This is an Android Gradle project (AGP 8.13.1, Gradle 8.13, FTC SDK 11.1.0). Source/target compatibility is Java 8.
 
 ```shell
 # Build the project

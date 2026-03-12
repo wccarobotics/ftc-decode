@@ -285,7 +285,7 @@ public class JeffScoring {
         return ret;
     }
     public void updateAll(){
-        sensorCache.startLoop();
+        sensorCache.update();
         double leftDistance = sensorCache.getDistance(leftColorSensor, DistanceUnit.CM);
         double rightDistance = sensorCache.getDistance(rightColorSensor, DistanceUnit.CM);
 
