@@ -250,29 +250,49 @@ public class JeffScoring {
     public boolean leftBall(){
         return leftLauncher.seesBall();
     }
+
+    // Hue readings
+
+
     public double leftBallColor(){ // green averages 160 in home at night, purple is 227 at home during night
-        float[] hsv = new float[3];
-        NormalizedRGBA norm = sensorCache.getNormalizedColors(leftColorSensor);
-        if (norm == null) return 0;
-        Color.RGBToHSV((int)(norm.red * 255), (int)(norm.green * 255), (int)(norm.blue * 255), hsv);
-        return hsv[0];
+        return sensorCache.getHue(leftColorSensor);
     }
 
     public boolean rightBall(){
         return rightLauncher.seesBall();
     }
     public double rightBallColor(){ // green averages 160 in home at night, purple is 227 at home during night
-        float[] hsv = new float[3];
-        NormalizedRGBA norm = sensorCache.getNormalizedColors(rightColorSensor);
-        if (norm == null) return 0;
-        Color.RGBToHSV((int)(norm.red * 255), (int)(norm.green * 255), (int)(norm.blue * 255), hsv);
-        return hsv[0];
+        return sensorCache.getHue(rightColorSensor);
     }
     public double frontBallDistance(){
         if (diverterDirection == DiverterDirection.LEFT){
-            return sensorCache.getDistance(rightFrontColorSensor, DistanceUnit.CM);
+            return sensorCache.getDistance(rightFrontColorSensor);
         }
-        else return 1;
+        else {
+            return  sensorCache.getDistance(leftFrontColorSensor);
+        }
+    }
+    public boolean frontBall(){
+        if (frontBallDistance() < 6){
+            if (frontBallDistance() < 2){
+                rightFrontColorSensor.enableLed(false);
+                leftFrontColorSensor.enableLed(false);
+            }
+            else {
+                rightFrontColorSensor.enableLed(true);
+                leftFrontColorSensor.enableLed(true);
+            }
+            return true;
+        }
+        else return false;
+    }
+    public double frontColor(){
+        if (diverterDirection == DiverterDirection.LEFT){
+            return sensorCache.getHue(rightFrontColorSensor);
+        }
+        else {
+            return sensorCache.getHue(leftFrontColorSensor);
+        }
     }
 
     NormalizedRGBA undoNormalization(NormalizedRGBA color, RevColorSensorV3 sensor)
@@ -286,14 +306,19 @@ public class JeffScoring {
     }
     public void updateAll(){
         sensorCache.update();
-        double leftDistance = sensorCache.getDistance(leftColorSensor, DistanceUnit.CM);
-        double rightDistance = sensorCache.getDistance(rightColorSensor, DistanceUnit.CM);
+        double leftDistance = sensorCache.getDistance(leftColorSensor);
+        double rightDistance = sensorCache.getDistance(rightColorSensor);
 
         leftLauncher.update(leftDistance);
         rightLauncher.update(rightDistance);
 
         telemetry.addData("Sensor cache entries", sensorCache.getEntryCount());
         telemetry.addData("Sensor cache staleness (ms)", sensorCache.getMaxStalenessMs());
+
+        telemetry.addData("left sensor", "%.1f cm %.1f hue",
+                sensorCache.getDistance(leftColorSensor), sensorCache.getHue(leftColorSensor));
+        telemetry.addData("right sensor", "%.1f cm %.1f hue",
+                sensorCache.getDistance(rightColorSensor), sensorCache.getHue(rightColorSensor));
 
 //        int red = leftColorSensor.red();
 //        int green = leftColorSensor.green();

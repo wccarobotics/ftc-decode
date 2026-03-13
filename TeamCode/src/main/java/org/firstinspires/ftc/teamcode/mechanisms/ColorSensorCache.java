@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode.mechanisms;
 
+import android.graphics.Color;
+
 import com.qualcomm.hardware.rev.RevColorSensorV3;
 import com.qualcomm.robotcore.hardware.NormalizedRGBA;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
@@ -21,6 +23,7 @@ public class ColorSensorCache {
         final ReadType type;
         double distanceCm = 0.0;
         NormalizedRGBA colors = new NormalizedRGBA();
+        float [] hsv = new float[3];
         long lastReadMs = 0;
 
         CacheEntry(RevColorSensorV3 sensor, ReadType type) {
@@ -37,6 +40,7 @@ public class ColorSensorCache {
                 colors.green = n.green;
                 colors.blue = n.blue;
                 colors.alpha = n.alpha;
+                Color.RGBToHSV((int)(colors.red * 255), (int)(colors.green * 255), (int)(colors.blue * 255), hsv);
             }
             lastReadMs = System.currentTimeMillis();
         }
@@ -66,7 +70,7 @@ public class ColorSensorCache {
     }
 
     /** Get cached distance for a sensor. Auto-registers on first call. */
-    public double getDistance(RevColorSensorV3 sensor, DistanceUnit unit) {
+    public double getDistance(RevColorSensorV3 sensor) {
         if (sensor == null) return 0.0;
         return findOrCreate(sensor, ReadType.DISTANCE).distanceCm;
     }
@@ -75,6 +79,12 @@ public class ColorSensorCache {
     public NormalizedRGBA getNormalizedColors(RevColorSensorV3 sensor) {
         if (sensor == null) return null;
         return findOrCreate(sensor, ReadType.COLOR).colors;
+    }
+
+    public float getHue(RevColorSensorV3 sensor)
+    {
+        if (sensor == null) return 0.0f;
+        return findOrCreate(sensor, ReadType.COLOR).hsv[0];
     }
 
     /** Number of entries in the round-robin rotation. */
