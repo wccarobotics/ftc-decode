@@ -49,9 +49,9 @@ public class Lights {
     public void ballColors() {
         if (scoring.leftBall()) { // changes the color of the light for the left ball
             double leftBallColor = scoring.leftBallColor();
-            if (Math.abs(158 - leftBallColor) < 10) {
+            if (leftBallColor < 170) {
                 leftColor(.47);
-            } else if (Math.abs(227 - leftBallColor) < 10) {
+            } else if (leftBallColor > 180) {
                 leftColor(.72);
             }
         } else {
@@ -59,19 +59,19 @@ public class Lights {
         }
         if (scoring.rightBall()) {
             double rightBallColor = scoring.rightBallColor();
-            if (Math.abs(158 - rightBallColor) < 10) {
+            if (rightBallColor < 170) {
                 rightColor(.47);
-            } else if (Math.abs(227 - rightBallColor) < 10) {
+            } else if (rightBallColor > 180) {
                 rightColor(.72);
             }
         } else {
             rightColor(alliance == JeffBase.Alliance.BLUE ? .611 : .28);
         }
         if (scoring.frontBall()) {
-            if (Math.abs(158 - scoring.leftBallColor()) < 10) {
+            if (scoring.frontColor() < 170) {
                 centerColor(.47);
             }
-            else if (Math.abs(227 - scoring.frontColor()) < 10) {
+            else if (scoring.frontColor() > 180) {
                 centerColor(.72);
             }
         }

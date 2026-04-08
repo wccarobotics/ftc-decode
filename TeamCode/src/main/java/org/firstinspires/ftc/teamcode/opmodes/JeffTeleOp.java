@@ -141,9 +141,7 @@ public class JeffTeleOp extends JeffBase {
          * Here we give the user control of the speed of the launcher motor without automatically
          * queuing a shot.
          */
-        if (gamepad1.y) {
-            scoring.spinLauncher();
-        } else if (gamepad1.b) {
+        if (gamepad1.b) {
             scoring.stopLauncher();
         }
 
@@ -172,6 +170,9 @@ public class JeffTeleOp extends JeffBase {
         /*
          * Now we call our "Launch" function.
          */
+        if (gamepad1.yWasPressed()){
+            scoring.shootAll();
+        }
         if(gamepad1.leftBumperWasPressed()){
             scoring.shootLeft();
         }

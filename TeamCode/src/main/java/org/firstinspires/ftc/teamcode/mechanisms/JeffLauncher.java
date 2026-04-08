@@ -22,6 +22,8 @@ public class JeffLauncher {
 
     ElapsedTime feederTimer = new ElapsedTime();
 
+    boolean delayBall = false;
+
     public void init(JeffScoring.Flywheel flywheel, CRServo feeder)
     {
         this.flywheel = flywheel;
@@ -46,6 +48,7 @@ public class JeffLauncher {
             case LAUNCH:
                 feeder.setPower(FULL_SPEED);
                 feederTimer.reset();
+                delayBall = false;
                 launchState = JeffScoring.LaunchState.LAUNCHING;
                 break;
             case LAUNCHING:
@@ -66,10 +69,13 @@ public class JeffLauncher {
     public boolean ballDelay(){
         boolean canShoot = false;
         if (seesBall()){
-            ballTimer.reset();
             canShoot = false;
         }
-        else if (!seesBall() && ballTimer.seconds() >= FEED_DELAY){
+        if (!seesBall() && ! delayBall){
+            delayBall = true;
+            ballTimer.reset();
+        }
+        else if (delayBall && ballTimer.seconds() >= FEED_DELAY){
             canShoot = true;
         }
         return canShoot;

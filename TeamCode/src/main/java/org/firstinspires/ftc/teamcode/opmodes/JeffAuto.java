@@ -15,7 +15,7 @@ import org.firstinspires.ftc.teamcode.pedroPathing.PanelsDrawing;
 @Autonomous
 public class JeffAuto extends JeffBase {
 
-    private Pose nearScorePose = new Pose(50, 90, Math.toRadians(144)); // near scoring Pose of our robot.
+    private Pose nearScorePose = new Pose(58, 80, Math.toRadians(130)); // near scoring Pose of our robot.
     private Pose farScorePose = new Pose(72, 15, 0);
     private Pose endPose = new Pose(30, 72, Math.toRadians(180)); // Ending Pose of robot
 

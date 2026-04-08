@@ -3,6 +3,8 @@ package org.firstinspires.ftc.teamcode.mechanisms;
 import static com.qualcomm.robotcore.hardware.DcMotor.ZeroPowerBehavior.BRAKE;
 
 import android.graphics.Color;
+
+import com.pedropathing.follower.Follower;
 import com.qualcomm.robotcore.hardware.NormalizedRGBA;
 
 import com.qualcomm.hardware.rev.RevColorSensorV3;
@@ -21,11 +23,11 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 public class JeffScoring {
 
 
-    static final double LAUNCHER_CLOSE_TARGET_VELOCITY = 1200; //in ticks/second for the close goal.
-    static final double LAUNCHER_CLOSE_MIN_VELOCITY = 1175; //minimum required to start a shot for close goal.
+    static final double LAUNCHER_CLOSE_TARGET_VELOCITY = 1300; //in ticks/second for the close goal.
+    static final double LAUNCHER_CLOSE_MIN_VELOCITY = 1250; //minimum required to start a shot for close goal.
 
-    static final double LAUNCHER_FAR_TARGET_VELOCITY = 1350; //Target velocity for far goal
-    static final double LAUNCHER_FAR_MIN_VELOCITY = 1325; //minimum required to start a shot for far goal.
+    static final double LAUNCHER_FAR_TARGET_VELOCITY = 1450; //Target velocity for far goal
+    static final double LAUNCHER_FAR_MIN_VELOCITY = 1525; //minimum required to start a shot for far goal.
 
     boolean reverseIntake = false;
 
@@ -45,6 +47,8 @@ public class JeffScoring {
     private RevColorSensorV3 leftFrontColorSensor = null;
     private RevColorSensorV3 rightFrontColorSensor = null;
     private ColorSensorCache sensorCache = new ColorSensorCache();
+
+    Follower follower;
 
     public enum LaunchState {
         IDLE,
@@ -77,12 +81,19 @@ public class JeffScoring {
 
     private final Flywheel flywheel = new Flywheel();
 
+    boolean pastRight;
+    boolean pastLeft;
+    boolean pastFront;
+
+    boolean allShoot = false;
+
 
 
     private LauncherDistance launcherDistance = LauncherDistance.CLOSE;
 
-    public void init(HardwareMap hardwareMap, Telemetry telemetry){
+    public void init(HardwareMap hardwareMap, Telemetry telemetry, Follower follower){
         this.telemetry = telemetry;
+        this.follower = follower;
 
         leftLauncherMotor = hardwareMap.get(DcMotorEx.class, "left_flywheel");
         rightLauncherMotor = hardwareMap.get(DcMotorEx.class, "right_flywheel");
@@ -94,6 +105,10 @@ public class JeffScoring {
         rightColorSensor = hardwareMap.get(RevColorSensorV3.class, "color_right");
         leftFrontColorSensor = hardwareMap.get(RevColorSensorV3.class, "color_left_front");
         rightFrontColorSensor = hardwareMap.get(RevColorSensorV3.class, "color_left_front");
+
+        boolean pastRight = false;
+        boolean pastLeft = false;
+        boolean pastFront = false;
 
         sensorCache = new ColorSensorCache();
 
@@ -129,6 +144,8 @@ public class JeffScoring {
         //  Fix this so normalization works better
         leftColorSensor.getParameters().colorSaturation = 255;
         rightColorSensor.getParameters().colorSaturation = 255;
+        rightFrontColorSensor.getParameters().colorSaturation = 255;
+        leftFrontColorSensor.getParameters().colorSaturation = 255;
 
         flywheel.init(leftLauncherMotor, rightLauncherMotor);
 
@@ -187,7 +204,10 @@ public class JeffScoring {
     public void switchIntake(){
         reverseIntake = !reverseIntake;
     }
-    public void forwardIntake(){}
+    public void forwardIntake(){
+        intake.setPower(1);
+        intakeState = IntakeState.ON;
+    }
     public void intakeOff(){
         intake.setPower(0);
         intakeState = IntakeState.OFF;
@@ -269,28 +289,22 @@ public class JeffScoring {
             return sensorCache.getDistance(rightFrontColorSensor);
         }
         else {
-            return  sensorCache.getDistance(leftFrontColorSensor);
+            return sensorCache.getDistance(leftFrontColorSensor);
         }
     }
     public boolean frontBall(){
-        if (frontBallDistance() < 6){
-            if (frontBallDistance() < 2){
-                rightFrontColorSensor.enableLed(false);
-                leftFrontColorSensor.enableLed(false);
-            }
-            else {
-                rightFrontColorSensor.enableLed(true);
-                leftFrontColorSensor.enableLed(true);
-            }
+        if (frontBallDistance() < 4.2){
             return true;
         }
         else return false;
     }
     public double frontColor(){
         if (diverterDirection == DiverterDirection.LEFT){
+            sensorCache.getHue(rightFrontColorSensor);
             return sensorCache.getHue(rightFrontColorSensor);
         }
         else {
+            sensorCache.getHue(leftFrontColorSensor);
             return sensorCache.getHue(leftFrontColorSensor);
         }
     }
@@ -304,13 +318,75 @@ public class JeffScoring {
         ret.blue = color.blue * multiplier;
         return ret;
     }
+    public void shootAll(){
+        allShoot = true;
+    }
     public void updateAll(){
         sensorCache.update();
         double leftDistance = sensorCache.getDistance(leftColorSensor);
         double rightDistance = sensorCache.getDistance(rightColorSensor);
 
+        boolean bothIdle = (leftLauncher.getLaunchState() == LaunchState.IDLE && rightLauncher.getLaunchState() == LaunchState.IDLE);
+
         leftLauncher.update(leftDistance);
         rightLauncher.update(rightDistance);
+
+        if (follower.getPose().getY() < 50){
+            launcherDistance = LauncherDistance.FAR;
+        }
+        else launcherDistance = LauncherDistance.CLOSE;
+
+        if (allShoot){
+            if(frontBall()){
+                if(diverterDirection == DiverterDirection.LEFT){
+                    shootRight();
+                }
+                else shootLeft();
+            }
+            else if (!frontBall() && rightBall() && leftBall()){
+                if(diverterDirection == DiverterDirection.LEFT && bothIdle){
+                    shootLeft();
+                }
+                else if(bothIdle){
+                    shootRight();
+                }
+            }
+            else if (rightBall() && bothIdle) {
+                diverterRight();
+                shootRight();
+            }
+            else if (leftBall() && bothIdle) {
+                diverterLeft();
+                shootLeft();
+            }
+            else if (!rightBall() && !leftBall() && !frontBall()){
+                allShoot = false;
+            }
+        }
+
+        if (rightLauncher.getLaunchState() == LaunchState.LAUNCHING || leftLauncher.getLaunchState() == LaunchState.LAUNCHING){
+            intakeOn();
+        }
+
+        if ((pastFront != frontBall()) || (pastRight != rightBall()) || (pastLeft != leftBall())) {
+            if (frontBall() && leftBall() && rightBall()) {
+                intakeOff();
+            }
+            if (!frontBall()) {
+                intakeOn();
+            }
+        }
+
+        if (bothIdle && (follower.getPose().getY() >= Math.abs(follower.getPose().getX()-72) + 65 || (follower.getPose().getY() <= -Math.abs(follower.getPose().getX()-72) + 30))){
+            spinLauncher();
+            telemetry.addLine("in");
+        }
+        else if (bothIdle) {
+            stopLauncher();
+        }
+        pastRight = rightBall();
+        pastLeft = leftBall();
+        pastFront = frontBall();
 
         telemetry.addData("Sensor cache entries", sensorCache.getEntryCount());
         telemetry.addData("Sensor cache staleness (ms)", sensorCache.getMaxStalenessMs());
@@ -319,6 +395,10 @@ public class JeffScoring {
                 sensorCache.getDistance(leftColorSensor), sensorCache.getHue(leftColorSensor));
         telemetry.addData("right sensor", "%.1f cm %.1f hue",
                 sensorCache.getDistance(rightColorSensor), sensorCache.getHue(rightColorSensor));
+        telemetry.addData("front sensor", frontColor());
+
+        telemetry.addData("x", follower.getPose().getX());
+        telemetry.addData("y", follower.getPose().getY());
 
 //        int red = leftColorSensor.red();
 //        int green = leftColorSensor.green();

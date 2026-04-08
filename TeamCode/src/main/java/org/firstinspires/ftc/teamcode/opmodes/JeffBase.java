@@ -38,7 +38,7 @@ public abstract class JeffBase extends OpMode {
     }
     public static Alliance currentAlliance = Alliance.BLUE;
 
-    protected Pose goalTarget = new Pose(0, 130);
+    protected Pose goalTarget = new Pose(0, 137);
 
     protected Pose savedPose;
 
@@ -68,7 +68,7 @@ public abstract class JeffBase extends OpMode {
         follower = Constants.createFollower(hardwareMap);
         //telemetryM = PanelsTelemetry.INSTANCE.getTelemetry();
         PanelsDrawing.init();
-        scoring.init(hardwareMap, telemetry);
+        scoring.init(hardwareMap, telemetry, follower);
         //vision.init(hardwareMap, follower, telemetry);
         lights.init(hardwareMap, scoring);
         prefs = hardwareMap.appContext.getSharedPreferences("FTCData", Context.MODE_PRIVATE);
