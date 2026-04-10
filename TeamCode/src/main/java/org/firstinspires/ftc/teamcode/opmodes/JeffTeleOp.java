@@ -134,7 +134,10 @@ public class JeffTeleOp extends JeffBase {
                 else {
                     dTerm = ((error - lastError) / dT) * JeffConfig.kD;
                 }
-                turn = pTerm + dTerm;
+                double ffTerm = Math.abs(error) > JeffConfig.aimDeadband
+                        ? JeffConfig.kF * Math.signum(error)
+                        : 0;
+                turn = pTerm + dTerm + ffTerm;
 
                 lastError = error;
                 lastTime = curTime;
