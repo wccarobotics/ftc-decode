@@ -17,8 +17,9 @@ import org.firstinspires.ftc.teamcode.pedroPathing.PanelsDrawing;
 public class JeffAuto extends JeffBase {
 
     private Pose nearScorePose = new Pose(58, 80, Math.toRadians(130)); // near scoring Pose of our robot.
-    private Pose farScorePose = new Pose(72, 15, 0);
+    private Pose farScorePose = new Pose(55, 20, 0);
     private Pose endPose = new Pose(30, 72, Math.toRadians(180)); // Ending Pose of robot
+    private Pose endPose2 = new Pose(55,40, Math.toRadians(90));
 
     private enum Auto{
         NEAR,
@@ -82,17 +83,15 @@ public class JeffAuto extends JeffBase {
         }
         else if (auto == Auto.FAR){
             scheduler.schedule( new SequentialCommand(
-                    new InstantCommand(()-> scoring.setLaunchDistance()),
-                    new LineToCommand(follower, AimAt(farScorePose, goalTarget)),
-                    new ShootAllCommand(scoring,vision),
-                    new InstantCommand(() -> scoring.intakeOn()),
-                    new LineToCommand(follower, getSpikePose(3,-1)),
-                    new LineToCommand(follower, getSpikePose(3,1), .25, true),
-                    new InstantCommand(() -> scoring.switchDiverter()),
-                    new WaitCommand(.25),
-                    new LineToCommand(follower, getSpikePose(3,1),.25, true),
-                    new InstantCommand(() -> scoring.intakeOff()),
-                    new ShootAllCommand(scoring, vision)
+                new LineToCommand(follower, AimAt(farScorePose, goalTarget)),
+                new ShootAllCommand(scoring, vision),
+                new YummyArtifacts(scoring, follower, 3.0),
+                new LineToCommand(follower, AimAt(farScorePose, goalTarget)),
+                new ShootAllCommand(scoring, vision),
+//                new YummyArtifacts(scoring, follower, 2.0),
+//                new LineToCommand(follower, AimAt(farScorePose, goalTarget)),
+//                new ShootAllCommand(scoring, vision),
+               new LineToCommand(follower, endPose2)
             ));
         }
         else if (auto == Auto.TEST){

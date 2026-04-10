@@ -112,7 +112,7 @@ public class JeffTeleOp extends JeffBase {
             }
             else
             {
-                error = 0;
+                error = targetHeading - currentPose.getHeading();
             }
 
             telemetry.addData("Goal angle", Math.toDegrees(error));
@@ -122,7 +122,7 @@ public class JeffTeleOp extends JeffBase {
                 if (error > Math.PI){
                     error -= 2 * Math.PI;
                 }
-                double pTerm = error * JeffConfig.AimConfig.kP;
+                double pTerm = error * JeffConfig.kP;
 
                 double curTime = getRuntime();
                 double dT = curTime - lastTime;
@@ -132,7 +132,7 @@ public class JeffTeleOp extends JeffBase {
                     dTerm = 0;
                 }
                 else {
-                    dTerm = ((error - lastError) / dT) * JeffConfig.AimConfig.kD;
+                    dTerm = ((error - lastError) / dT) * JeffConfig.kD;
                 }
                 turn = pTerm + dTerm;
 
