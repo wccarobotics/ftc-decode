@@ -24,10 +24,13 @@ public class JeffLauncher {
 
     boolean delayBall = false;
 
-    public void init(JeffScoring.Flywheel flywheel, CRServo feeder)
+    double range;
+
+    public void init(JeffScoring.Flywheel flywheel, CRServo feeder, double range)
     {
         this.flywheel = flywheel;
         this.feeder = feeder;
+        this.range = range;
 
         feeder.setPower(STOP_SPEED);
     }
@@ -85,7 +88,8 @@ public class JeffLauncher {
         return distance;
     }
     public boolean seesBall(){
-        return (ballDistance() < 6);
+        // right launcher threshold should be around 8 cm
+        return (ballDistance() < range);
     }
 
     public JeffScoring.LaunchState getLaunchState()

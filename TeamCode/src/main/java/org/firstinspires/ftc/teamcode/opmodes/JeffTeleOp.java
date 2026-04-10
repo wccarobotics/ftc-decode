@@ -24,6 +24,7 @@
 package org.firstinspires.ftc.teamcode.opmodes;
 
 import com.pedropathing.geometry.Pose;
+import com.qualcomm.hardware.limelightvision.LLResultTypes;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.teamcode.mechanisms.LimelightVision;
@@ -102,6 +103,20 @@ public class JeffTeleOp extends JeffBase {
 
             double error = targetHeading - currentPose.getHeading();
 
+            int goalTagId = currentAlliance == Alliance.BLUE ? LimelightVision.BLUE_GOAL_TAG_ID : LimelightVision.RED_GOAL_TAG_ID;
+
+            LLResultTypes.FiducialResult visionTag = vision.getAprilTag(goalTagId);
+            if (visionTag != null)
+            {
+                error = -Math.toRadians(visionTag.getTargetXDegrees());
+            }
+            else
+            {
+                error = 0;
+            }
+
+            telemetry.addData("Goal angle", Math.toDegrees(error));
+
 
             if (gamepad1.right_stick_button){
                 if (error > Math.PI){
@@ -150,10 +165,12 @@ public class JeffTeleOp extends JeffBase {
             scoring.switchDiverter();
         }
         if (gamepad1.dpadLeftWasPressed()) {
-            scoring.changeDiverter(-0.05);
+            scoring.flywheel.changeSpeed(-25);
+            scoring.spinLauncher();
         }
         if (gamepad1.dpadRightWasPressed()) {
-            scoring.changeDiverter(0.05);
+            scoring.flywheel.changeSpeed(25);
+            scoring.spinLauncher();
         }
 
         // intake

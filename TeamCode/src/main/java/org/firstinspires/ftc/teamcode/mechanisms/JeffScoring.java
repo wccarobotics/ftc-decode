@@ -24,9 +24,9 @@ public class JeffScoring {
 
 
     static final double LAUNCHER_CLOSE_TARGET_VELOCITY = 1300; //in ticks/second for the close goal.
-    static final double LAUNCHER_CLOSE_MIN_VELOCITY = 1250; //minimum required to start a shot for close goal.
+    static final double LAUNCHER_CLOSE_MIN_VELOCITY = 1275; //minimum required to start a shot for close goal.
 
-    static final double LAUNCHER_FAR_TARGET_VELOCITY = 1450; //Target velocity for far goal
+    static final double LAUNCHER_FAR_TARGET_VELOCITY = 1550; //Target velocity for far goal
     static final double LAUNCHER_FAR_MIN_VELOCITY = 1525; //minimum required to start a shot for far goal.
 
     boolean reverseIntake = false;
@@ -79,13 +79,13 @@ public class JeffScoring {
     private final JeffLauncher leftLauncher = new JeffLauncher();
     private final JeffLauncher rightLauncher = new JeffLauncher();
 
-    private final Flywheel flywheel = new Flywheel();
+    public final Flywheel flywheel = new Flywheel();
 
     boolean pastRight;
     boolean pastLeft;
     boolean pastFront;
 
-    boolean allShoot = false;
+    public boolean allShoot = false;
 
 
 
@@ -149,8 +149,8 @@ public class JeffScoring {
 
         flywheel.init(leftLauncherMotor, rightLauncherMotor);
 
-        leftLauncher.init(flywheel, leftFeeder);
-        rightLauncher.init(flywheel, rightFeeder);
+        leftLauncher.init(flywheel, leftFeeder, 6);
+        rightLauncher.init(flywheel, rightFeeder, 7.5);
     }
 
     void setDiverterPosition(double newPosition)
@@ -333,8 +333,12 @@ public class JeffScoring {
 
         if (follower.getPose().getY() < 50){
             launcherDistance = LauncherDistance.FAR;
+            flywheel.setLaunchSpeed(LAUNCHER_FAR_TARGET_VELOCITY, LAUNCHER_FAR_MIN_VELOCITY);
         }
-        else launcherDistance = LauncherDistance.CLOSE;
+        else {
+            launcherDistance = LauncherDistance.CLOSE;
+            flywheel.setLaunchSpeed(LAUNCHER_CLOSE_TARGET_VELOCITY, LAUNCHER_CLOSE_MIN_VELOCITY);
+        }
 
         if (allShoot){
             if(frontBall()){
@@ -400,6 +404,8 @@ public class JeffScoring {
         telemetry.addData("x", follower.getPose().getX());
         telemetry.addData("y", follower.getPose().getY());
 
+        telemetry.addData("flywheel target speed", flywheel._launcherTarget);
+
 //        int red = leftColorSensor.red();
 //        int green = leftColorSensor.green();
 //        int blue = leftColorSensor.blue();
@@ -430,7 +436,7 @@ public class JeffScoring {
         //telemetry.addData("Left Front Proximity", leftFrontColorSensor.getDistance(DistanceUnit.CM));
     }
 
-    static class Flywheel
+    public static class Flywheel
     {
         private DcMotorEx leftLauncher = null;
         private DcMotorEx rightLauncher = null;
@@ -480,7 +486,9 @@ public class JeffScoring {
                 rightLauncher.setVelocity(0);
             }
         }
-
+        public void changeSpeed(double RPM){
+            _launcherTarget += RPM;
+        }
     }
 
 }

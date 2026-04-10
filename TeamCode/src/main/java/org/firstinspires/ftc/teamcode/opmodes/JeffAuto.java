@@ -10,6 +10,7 @@ import org.firstinspires.ftc.teamcode.commands.LineToCommand;
 import org.firstinspires.ftc.teamcode.commands.SequentialCommand;
 import org.firstinspires.ftc.teamcode.commands.ShootAllCommand;
 import org.firstinspires.ftc.teamcode.commands.WaitCommand;
+import org.firstinspires.ftc.teamcode.commands.YummyArtifacts;
 import org.firstinspires.ftc.teamcode.pedroPathing.PanelsDrawing;
 
 @Autonomous
@@ -21,9 +22,13 @@ public class JeffAuto extends JeffBase {
 
     private enum Auto{
         NEAR,
-        FAR
+        FAR,
+        TEST,
+        GOTOCENTER,
+        GOPARK,
     }
     private Auto auto = Auto.NEAR;
+    private int autoIndex = 0;
 
     private CommandScheduler scheduler = new CommandScheduler();
 
@@ -35,12 +40,14 @@ public class JeffAuto extends JeffBase {
     public void init_loop(){
         super.init_loop();
         if (gamepad1.dpadRightWasPressed()){
-            if (auto == Auto.NEAR){
-                auto = Auto.FAR;
-            }
-            else if (auto == Auto.FAR){
-                auto = Auto.NEAR;
-            }
+            Auto [] values = Auto.values();
+            autoIndex = (autoIndex + 1) % values.length;
+            auto = values[autoIndex];
+        }
+        else if (gamepad1.dpadLeftWasPressed()){
+            Auto [] values = Auto.values();
+            autoIndex = (autoIndex - 1 + values.length) % values.length;
+            auto = values[autoIndex];
         }
         telemetry.addData("Auto", auto);
     }
@@ -58,7 +65,39 @@ public class JeffAuto extends JeffBase {
         }
 
         if (auto == Auto.NEAR) {
-//            scheduler.schedule(new SequentialCommand(
+
+
+            // Build the autonomous command sequence
+            scheduler.schedule(new SequentialCommand(
+                new LineToCommand(follower, AimAt(nearScorePose, goalTarget)),
+                new ShootAllCommand(scoring, vision),
+                new YummyArtifacts(scoring, follower, 1.0),
+                new LineToCommand(follower, AimAt(nearScorePose, goalTarget)),
+                new ShootAllCommand(scoring, vision),
+                new YummyArtifacts(scoring, follower, 2.0),
+                new LineToCommand(follower, AimAt(nearScorePose, goalTarget)),
+                new ShootAllCommand(scoring, vision),
+                new LineToCommand(follower, endPose)
+            ));
+        }
+        else if (auto == Auto.FAR){
+            scheduler.schedule( new SequentialCommand(
+                    new InstantCommand(()-> scoring.setLaunchDistance()),
+                    new LineToCommand(follower, AimAt(farScorePose, goalTarget)),
+                    new ShootAllCommand(scoring,vision),
+                    new InstantCommand(() -> scoring.intakeOn()),
+                    new LineToCommand(follower, getSpikePose(3,-1)),
+                    new LineToCommand(follower, getSpikePose(3,1), .25, true),
+                    new InstantCommand(() -> scoring.switchDiverter()),
+                    new WaitCommand(.25),
+                    new LineToCommand(follower, getSpikePose(3,1),.25, true),
+                    new InstantCommand(() -> scoring.intakeOff()),
+                    new ShootAllCommand(scoring, vision)
+            ));
+        }
+        else if (auto == Auto.TEST){
+            scheduler.schedule(new SequentialCommand(
+                    new LineToCommand(follower, getSpikePose(1, -1))
 //                    new LineToCommand(follower, AimAt(nearScorePose, goalTarget)),
 //                    new WaitCommand(2),
 //                    new LineToCommand(follower, getSpikePose(1, -1)),
@@ -83,48 +122,16 @@ public class JeffAuto extends JeffBase {
 //                    new WaitCommand(2),
 //                    new LineToCommand(follower, getSpikePose(1, -1)),
 //                    new WaitCommand(2)
-//            ));
-
-            // Build the autonomous command sequence
-            scheduler.schedule(new SequentialCommand(
-                new LineToCommand(follower, AimAt(nearScorePose, goalTarget)),
-                new ShootAllCommand(scoring, vision),
-                new LineToCommand(follower, getSpikePose(1, -1)),
-                new InstantCommand(() -> scoring.intakeOn()),
-                new LineToCommand(follower, getSpikePose(1, 1), 0.25, true),
-                new WaitCommand(.25),
-                new InstantCommand(() -> scoring.switchDiverter()),
-                new WaitCommand(.25),
-                new LineToCommand(follower, getSpikePose(1, 3), 0.25, true),
-                new InstantCommand(() -> scoring.intakeOff()),
-                new LineToCommand(follower, AimAt(nearScorePose, goalTarget)),
-                new ShootAllCommand(scoring, vision),
-                new LineToCommand(follower, getSpikePose(2, -1)),
-                new InstantCommand(() -> scoring.intakeOn()),
-                new LineToCommand(follower, getSpikePose(2, 1), 0.25, true),
-                new WaitCommand(.25),
-                new InstantCommand(() -> scoring.switchDiverter()),
-                new WaitCommand(.25),
-                new LineToCommand(follower, getSpikePose(2, 3), 0.25, true),
-                new InstantCommand(() -> scoring.intakeOff()),
-                new LineToCommand(follower, AimAt(nearScorePose, goalTarget)),
-                new ShootAllCommand(scoring, vision),
-                new LineToCommand(follower, endPose)
             ));
         }
-        else if (auto == Auto.FAR){
-            scheduler.schedule( new SequentialCommand(
-                    new InstantCommand(()-> scoring.setLaunchDistance()),
-                    new LineToCommand(follower, AimAt(farScorePose, goalTarget)),
-                    new ShootAllCommand(scoring,vision),
-                    new InstantCommand(() -> scoring.intakeOn()),
-                    new LineToCommand(follower, getSpikePose(3,-1)),
-                    new LineToCommand(follower, getSpikePose(3,1), .25, true),
-                    new InstantCommand(() -> scoring.switchDiverter()),
-                    new WaitCommand(.25),
-                    new LineToCommand(follower, getSpikePose(3,1),.25, true),
-                    new InstantCommand(() -> scoring.intakeOff()),
-                    new ShootAllCommand(scoring, vision)
+        else if (auto == Auto.GOTOCENTER){
+            scheduler.schedule(new SequentialCommand(
+                    new LineToCommand(follower, new Pose(72, 72, Math.toRadians(90)))
+            ));
+        }
+        else if (auto == Auto.GOPARK){
+            scheduler.schedule(new SequentialCommand(
+                    new LineToCommand(follower, new Pose(96 + 9, 25.25 + 9, Math.toRadians(180)))
             ));
         }
     }
@@ -156,7 +163,7 @@ public class JeffAuto extends JeffBase {
             y = 60;
         }
         if (spike == 3){
-            y = 34;
+            y = 36;
         }
         if (ball == -1){
             x = 41;

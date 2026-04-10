@@ -38,7 +38,7 @@ public abstract class JeffBase extends OpMode {
     }
     public static Alliance currentAlliance = Alliance.BLUE;
 
-    protected Pose goalTarget = new Pose(0, 137);
+    protected Pose goalTarget = new Pose(0, 144);
 
     protected Pose savedPose;
 
@@ -69,7 +69,7 @@ public abstract class JeffBase extends OpMode {
         //telemetryM = PanelsTelemetry.INSTANCE.getTelemetry();
         PanelsDrawing.init();
         scoring.init(hardwareMap, telemetry, follower);
-        //vision.init(hardwareMap, follower, telemetry);
+        vision.init(hardwareMap, follower, telemetry);
         lights.init(hardwareMap, scoring);
         prefs = hardwareMap.appContext.getSharedPreferences("FTCData", Context.MODE_PRIVATE);
         load();
@@ -81,8 +81,8 @@ public abstract class JeffBase extends OpMode {
         poseOptions = new ArrayList<>();
         poseOptions.add(new PoseOption("Saved Pose", savedPose, false));
         poseOptions.add(new PoseOption("Center of Field", new Pose(72, 72, 0), false));
-        poseOptions.add(new PoseOption("Near", new Pose(31.6,131.2, Math.toRadians(-180)), true));
-        poseOptions.add(new PoseOption("Far", new Pose(56, 8, Math.toRadians(90)), true));
+        poseOptions.add(new PoseOption("Near", new Pose(34.3,133.25, Math.toRadians(-180)), true));
+        poseOptions.add(new PoseOption("Far", new Pose(58, 10.5, Math.toRadians(90)), true));
 
 
         telemetry.addData("Status", "Initialized");
@@ -178,6 +178,7 @@ public abstract class JeffBase extends OpMode {
         telemetry.addData("Loop (ms)", "avg %.1f / min %.1f / max %.1f",
                 loopTimer.getAvgMs(), loopTimer.getMinMs(), loopTimer.getMaxMs());
 
+        vision.update();
         follower.update();
         scoring.updateAll();
         lights.ballColors();
