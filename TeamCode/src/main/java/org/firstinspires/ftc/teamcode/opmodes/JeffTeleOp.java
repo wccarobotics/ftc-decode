@@ -69,7 +69,9 @@ public class JeffTeleOp extends JeffBase {
     }
 
     private Pose getParkPose() {
-        return currentAlliance == Alliance.RED ? blueParkPose.mirror() : blueParkPose;
+        Pose parkPose = currentAlliance == Alliance.RED ? blueParkPose.mirror() : blueParkPose;
+        double snappedHeading = Math.round(follower.getPose().getHeading() / (Math.PI / 2.0)) * (Math.PI / 2.0);
+        return parkPose.withHeading(snappedHeading);
     }
 
     private void startParkAssist() {
