@@ -69,10 +69,10 @@ public class JeffTeleOp extends JeffBase {
     @Override
     public void loop() {
             super.loop();
-
-            double forward = mechanumDrive.squareInputWithSign(-gamepad1.left_stick_y);
-            double strafe = mechanumDrive.squareInputWithSign(-gamepad1.left_stick_x);
-            double turn = mechanumDrive.squareInputWithSign(-(gamepad1.right_trigger - gamepad1.left_trigger));
+            
+            double forward = -gamepad1.left_stick_y;
+            double strafe = -gamepad1.left_stick_x;
+            double turn = -(gamepad1.right_trigger - gamepad1.left_trigger);
             double offsetHeading = currentAlliance == Alliance.BLUE? Math.toRadians(180): 0;
             //telemetryM.update();
 
