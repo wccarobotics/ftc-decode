@@ -23,7 +23,10 @@
 
 package org.firstinspires.ftc.teamcode.opmodes;
 
+import com.pedropathing.geometry.BezierLine;
 import com.pedropathing.geometry.Pose;
+import com.pedropathing.paths.Path;
+import com.pedropathing.paths.PathChain;
 import com.qualcomm.hardware.limelightvision.LLResultTypes;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
@@ -47,6 +50,8 @@ public class JeffTeleOp extends JeffBase {
 
     private boolean hasBalls = false;
     private boolean hadBalls = false;
+    private final Pose blueParkPose = new Pose(96 + 9, 25.25 + 9, Math.toRadians(180));
+    private boolean parkAssistActive = false;
     MechanumDrive mechanumDrive = new MechanumDrive();
 
     /*
@@ -61,6 +66,25 @@ public class JeffTeleOp extends JeffBase {
         curTime = getRuntime();
         scoring.closeLaunch();
 
+    }
+
+    private Pose getParkPose() {
+        return currentAlliance == Alliance.RED ? blueParkPose.mirror() : blueParkPose;
+    }
+
+    private void startParkAssist() {
+        Pose startPose = follower.getPose();
+        Pose parkPose = getParkPose();
+
+        Path path = new Path(new BezierLine(startPose, parkPose));
+        path.setLinearHeadingInterpolation(startPose.getHeading(), parkPose.getHeading());
+
+        PathChain parkPath = follower.pathBuilder()
+                .addPath(path)
+                .build();
+
+        follower.followPath(parkPath, 1.0, true);
+        parkAssistActive = true;
     }
 
     /*
@@ -147,7 +171,20 @@ public class JeffTeleOp extends JeffBase {
                 lastError = 0;
             }
 
-            follower.setTeleOpDrive(forward, strafe, turn, false, offsetHeading);
+            boolean parkHeld = gamepad1.left_stick_button;
+            if (parkHeld) {
+                if (!parkAssistActive) {
+                    startParkAssist();
+                }
+            }
+            else if (parkAssistActive) {
+                parkAssistActive = false;
+                follower.startTeleopDrive();
+            }
+
+            if (!parkAssistActive) {
+                follower.setTeleOpDrive(forward, strafe, turn, false, offsetHeading);
+            }
 
 
 //            telemetry.addData("heading", Math.toDegrees(follower.getHeading()));
@@ -224,6 +261,7 @@ public class JeffTeleOp extends JeffBase {
         telemetry.addData("launch distance", scoring.getLauncherDistance());
         telemetry.addData("Diverter position", scoring.diverterPose());
         telemetry.addData("Intake state", scoring.isIntakeOn());
+        telemetry.addData("Park assist", parkAssistActive);
 
     }
 
