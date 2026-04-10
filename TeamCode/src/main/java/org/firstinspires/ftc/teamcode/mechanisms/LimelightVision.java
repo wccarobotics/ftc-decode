@@ -257,6 +257,31 @@ public class LimelightVision {
         return Motif.UNKNOWN;
     }
 
+    public LLResultTypes.FiducialResult getAprilTag(int id)
+    {
+        if (!isResultValid()) {
+            return null;
+        }
+        List<LLResultTypes.FiducialResult> fiducials = latestResult.getFiducialResults();
+        for (LLResultTypes.FiducialResult fr : fiducials) {
+            if (fr.getFiducialId() == id)
+            {
+                return fr;
+            }
+        }
+        return null;
+    }
+
+//    public double getAngleToId(int id)
+//    {
+//        LLResultTypes.FiducialResult fr = getAprilTag(id);
+//        if (fr == null)
+//        {
+//            return 0;
+//        }
+//
+//    }
+
     /** Horizontal offset to the primary target in degrees. */
     public double getTx() {
         return isResultValid() ? latestResult.getTx() : 0;
