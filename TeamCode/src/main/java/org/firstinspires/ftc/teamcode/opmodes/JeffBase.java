@@ -188,6 +188,7 @@ public abstract class JeffBase extends OpMode {
     @Override
     public void stop()
     {
+        vision.stop();
         save();
     }
 }

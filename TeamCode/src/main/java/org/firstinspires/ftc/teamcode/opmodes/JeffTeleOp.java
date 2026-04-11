@@ -94,6 +94,8 @@ public class JeffTeleOp extends JeffBase {
      */
     @Override
     public void loop() {
+            boolean autoAimRequested = gamepad1.right_stick_button;
+            vision.setAutoAimActive(autoAimRequested);
             super.loop();
             
             double forward = -gamepad1.left_stick_y;
@@ -131,7 +133,7 @@ public class JeffTeleOp extends JeffBase {
 
             int goalTagId = currentAlliance == Alliance.BLUE ? LimelightVision.BLUE_GOAL_TAG_ID : LimelightVision.RED_GOAL_TAG_ID;
 
-            LLResultTypes.FiducialResult visionTag = vision.getAprilTag(goalTagId);
+            LLResultTypes.FiducialResult visionTag = autoAimRequested ? vision.getAprilTag(goalTagId) : null;
             if (visionTag != null)
             {
                 error = -Math.toRadians(visionTag.getTargetXDegrees());
@@ -144,7 +146,7 @@ public class JeffTeleOp extends JeffBase {
             telemetry.addData("Goal angle", Math.toDegrees(error));
 
 
-            if (gamepad1.right_stick_button){
+            if (autoAimRequested){
                 if (error > Math.PI){
                     error -= 2 * Math.PI;
                 }

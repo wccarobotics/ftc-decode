@@ -25,6 +25,10 @@ import java.util.List;
  * Provides MegaTag2-based localization and DECODE obelisk motif detection.
  */
 public class LimelightVision {
+    private static final int ACTIVE_POLL_RATE_HZ = 100;
+    private static final int IDLE_POLL_RATE_HZ = 5;
+    private static final long AIM_ACTIVE_HOLD_MS = 250;
+    private static final long IDLE_REFRESH_INTERVAL_MS = 200;
 
     //  Camera forward: -5 inches, -0.127 m
     //  Camera right: 1 inch, 0.0254 m
@@ -67,6 +71,9 @@ public class LimelightVision {
     private Limelight3A limelight;
     private Follower follower;
     private LLResult latestResult;
+    private int currentPollRateHz = -1;
+    private long aimActiveUntilMs = 0;
+    private long lastIdleRefreshMs = 0;
 
     private Telemetry telemetry;
 
@@ -100,7 +107,7 @@ public class LimelightVision {
         this.follower = follower;
         this.telemetry = telemetry;
         limelight = hardwareMap.get(Limelight3A.class, "limelight");
-        limelight.setPollRateHz(100);
+        setPollRateHz(IDLE_POLL_RATE_HZ);
         limelight.pipelineSwitch(0);
         limelight.start();
 
@@ -117,10 +124,35 @@ public class LimelightVision {
      * and refreshes the cached result. Call once per loop.
      */
     public void update() {
-        //  Subtract 90 degrees to convert from Pedro coordinate system to FTC coordinate system, which
-        //  the camera uses.
-        limelight.updateRobotOrientation(Math.toDegrees(follower.getHeading()) - 90);
-        latestResult = limelight.getLatestResult();
+        long now = System.currentTimeMillis();
+        boolean autoAimActive = isAutoAimActive(now);
+        setPollRateHz(autoAimActive ? ACTIVE_POLL_RATE_HZ : IDLE_POLL_RATE_HZ);
+
+        if (autoAimActive) {
+            // Subtract 90 degrees to convert from Pedro coordinates to the FTC frame used by the camera.
+            limelight.updateRobotOrientation(Math.toDegrees(follower.getHeading()) - 90);
+            latestResult = limelight.getLatestResult();
+        } else if (now - lastIdleRefreshMs >= IDLE_REFRESH_INTERVAL_MS) {
+            latestResult = limelight.getLatestResult();
+            lastIdleRefreshMs = now;
+        }
+    }
+
+    public void setAutoAimActive(boolean active) {
+        if (active) {
+            aimActiveUntilMs = System.currentTimeMillis() + AIM_ACTIVE_HOLD_MS;
+        }
+    }
+
+    private boolean isAutoAimActive(long nowMs) {
+        return nowMs <= aimActiveUntilMs;
+    }
+
+    private void setPollRateHz(int pollRateHz) {
+        if (currentPollRateHz != pollRateHz) {
+            limelight.setPollRateHz(pollRateHz);
+            currentPollRateHz = pollRateHz;
+        }
     }
 
     /**
