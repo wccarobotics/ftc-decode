@@ -70,6 +70,7 @@ public class JeffScoring {
         OFF,
     }
     private IntakeState intakeState = IntakeState.OFF;
+    private double appliedIntakePower = Double.NaN;
 
     private enum LauncherDistance {
         CLOSE,
@@ -116,6 +117,7 @@ public class JeffScoring {
         leftLauncherMotor.setDirection(DcMotorSimple.Direction.REVERSE);
 
         intake.setDirection(DcMotorSimple.Direction.REVERSE);
+        setIntakePower(0);
 
         leftLauncherMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         rightLauncherMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
@@ -193,11 +195,11 @@ public class JeffScoring {
         switch (intakeState){
             case ON:
                 intakeState = IntakeState.OFF;
-                intake.setPower(0);
+                setIntakePower(0);
                 break;
             case OFF:
                 intakeState = IntakeState.ON;
-                intake.setPower(intakePower);
+                setIntakePower(intakePower);
                 break;
         }
     }
@@ -205,25 +207,32 @@ public class JeffScoring {
         reverseIntake = !reverseIntake;
     }
     public void forwardIntake(){
-        intake.setPower(1);
+        setIntakePower(1);
         intakeState = IntakeState.ON;
     }
     public void intakeOff(){
-        intake.setPower(0);
+        setIntakePower(0);
         intakeState = IntakeState.OFF;
     }
     public void intakeOn() {
         double intakePower = reverseIntake ? -1 : 1;
-        intake.setPower(intakePower);
+        setIntakePower(intakePower);
         intakeState = IntakeState.ON;
     }
     public void setIntakeSpeed(double speed){
-        intake.setPower(speed);
+        setIntakePower(speed);
     }
 
     public boolean isIntakeOn()
     {
         return intakeState == IntakeState.ON;
+    }
+
+    private void setIntakePower(double power) {
+        if (Double.compare(appliedIntakePower, power) != 0) {
+            intake.setPower(power);
+            appliedIntakePower = power;
+        }
     }
     public void setLaunchDistance(){
         switch (launcherDistance) {
@@ -440,6 +449,7 @@ public class JeffScoring {
     {
         private DcMotorEx leftLauncher = null;
         private DcMotorEx rightLauncher = null;
+        private double appliedVelocity = Double.NaN;
 
         public void init(DcMotorEx leftLauncher, DcMotorEx rightLauncher)
         {
@@ -454,12 +464,18 @@ public class JeffScoring {
 
         public void start()
         {
+            if (_launcherOn) {
+                return;
+            }
             _launcherOn = true;
             setVelocity();
         }
 
         public void stop()
         {
+            if (!_launcherOn) {
+                return;
+            }
             _launcherOn = false;
             setVelocity();
         }
@@ -471,23 +487,26 @@ public class JeffScoring {
 
         public void setLaunchSpeed(double target, double min)
         {
+            boolean speedChanged = Double.compare(_launcherTarget, target) != 0
+                    || Double.compare(_launcherMin, min) != 0;
             _launcherTarget = target;
             _launcherMin = min;
-            setVelocity();
+            if (speedChanged) {
+                setVelocity();
+            }
         }
 
         private void setVelocity(){
-            if(_launcherOn){
-                leftLauncher.setVelocity(_launcherTarget);
-                rightLauncher.setVelocity(_launcherTarget);
-            }
-            else {
-                leftLauncher.setVelocity(0);
-                rightLauncher.setVelocity(0);
+            double velocity = _launcherOn ? _launcherTarget : 0.0;
+            if (Double.compare(appliedVelocity, velocity) != 0) {
+                leftLauncher.setVelocity(velocity);
+                rightLauncher.setVelocity(velocity);
+                appliedVelocity = velocity;
             }
         }
         public void changeSpeed(double RPM){
             _launcherTarget += RPM;
+            setVelocity();
         }
     }
 
