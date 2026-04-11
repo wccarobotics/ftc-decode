@@ -12,8 +12,9 @@ import com.pedropathing.util.PoseHistory;
 
 public class PanelsDrawing
 {
+    public static final boolean ENABLED = false;
     public static final double ROBOT_RADIUS = 9; // woah
-    private static final FieldManager panelsField = PanelsField.INSTANCE.getField();
+    private static FieldManager panelsField;
 
     private static final Style robotLook = new Style(
             "", "#3F51B5", 0.75
@@ -29,7 +30,11 @@ public class PanelsDrawing
      * This prepares Panels Field for using Pedro Offsets
      */
     public static void init() {
-        panelsField.setOffsets(PanelsField.INSTANCE.getPresets().getPEDRO_PATHING());
+        FieldManager field = getPanelsField();
+        if (field == null) {
+            return;
+        }
+        field.setOffsets(PanelsField.INSTANCE.getPresets().getPEDRO_PATHING());
     }
 
     /**
@@ -39,6 +44,9 @@ public class PanelsDrawing
      * @param follower Pedro Follower instance.
      */
     public static void drawDebug(Follower follower) {
+        if (!ENABLED) {
+            return;
+        }
         if (follower.getCurrentPath() != null) {
             drawPath(follower.getCurrentPath(), robotLook);
             Pose closestPoint = follower.getPointFromPath(follower.getCurrentPath().getClosestPointTValue());
@@ -58,22 +66,26 @@ public class PanelsDrawing
      * @param style the parameters used to draw the robot with
      */
     public static void drawRobot(Pose pose, Style style) {
+        FieldManager field = getPanelsField();
+        if (field == null) {
+            return;
+        }
         if (pose == null || Double.isNaN(pose.getX()) || Double.isNaN(pose.getY()) || Double.isNaN(pose.getHeading())) {
             return;
         }
 
-        panelsField.setStyle(style);
-        panelsField.moveCursor(pose.getX(), pose.getY());
-        panelsField.circle(ROBOT_RADIUS);
+        field.setStyle(style);
+        field.moveCursor(pose.getX(), pose.getY());
+        field.circle(ROBOT_RADIUS);
 
         Vector v = pose.getHeadingAsUnitVector();
         v.setMagnitude(v.getMagnitude() * ROBOT_RADIUS);
         double x1 = pose.getX() + v.getXComponent() / 2, y1 = pose.getY() + v.getYComponent() / 2;
         double x2 = pose.getX() + v.getXComponent(), y2 = pose.getY() + v.getYComponent();
 
-        panelsField.setStyle(style);
-        panelsField.moveCursor(x1, y1);
-        panelsField.line(x2, y2);
+        field.setStyle(style);
+        field.moveCursor(x1, y1);
+        field.line(x2, y2);
     }
 
     /**
@@ -92,6 +104,10 @@ public class PanelsDrawing
      * @param style the parameters used to draw the Path with
      */
     public static void drawPath(Path path, Style style) {
+        FieldManager field = getPanelsField();
+        if (field == null) {
+            return;
+        }
         double[][] points = path.getPanelsDrawingPoints();
 
         for (int i = 0; i < points[0].length; i++) {
@@ -102,9 +118,9 @@ public class PanelsDrawing
             }
         }
 
-        panelsField.setStyle(style);
-        panelsField.moveCursor(points[0][0], points[0][1]);
-        panelsField.line(points[1][0], points[1][1]);
+        field.setStyle(style);
+        field.moveCursor(points[0][0], points[0][1]);
+        field.line(points[1][0], points[1][1]);
     }
 
     /**
@@ -127,13 +143,17 @@ public class PanelsDrawing
      * @param style       the parameters used to draw the pose history with
      */
     public static void drawPoseHistory(PoseHistory poseTracker, Style style) {
-        panelsField.setStyle(style);
+        FieldManager field = getPanelsField();
+        if (field == null) {
+            return;
+        }
+        field.setStyle(style);
 
         int size = poseTracker.getXPositionsArray().length;
         for (int i = 0; i < size - 1; i++) {
 
-            panelsField.moveCursor(poseTracker.getXPositionsArray()[i], poseTracker.getYPositionsArray()[i]);
-            panelsField.line(poseTracker.getXPositionsArray()[i + 1], poseTracker.getYPositionsArray()[i + 1]);
+            field.moveCursor(poseTracker.getXPositionsArray()[i], poseTracker.getYPositionsArray()[i]);
+            field.line(poseTracker.getXPositionsArray()[i + 1], poseTracker.getYPositionsArray()[i + 1]);
         }
     }
 
@@ -150,6 +170,19 @@ public class PanelsDrawing
      * This tries to send the current packet to FTControl Panels.
      */
     public static void sendPacket() {
-        panelsField.update();
+        FieldManager field = getPanelsField();
+        if (field != null) {
+            field.update();
+        }
+    }
+
+    private static FieldManager getPanelsField() {
+        if (!ENABLED) {
+            return null;
+        }
+        if (panelsField == null) {
+            panelsField = PanelsField.INSTANCE.getField();
+        }
+        return panelsField;
     }
 }
