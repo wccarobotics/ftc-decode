@@ -24,6 +24,7 @@ public class JeffAuto extends JeffBase {
     private enum Auto{
         NEAR,
         FAR,
+        FAR9,
         TEST,
         GOTOCENTER,
         GOPARK,
@@ -62,7 +63,9 @@ public class JeffAuto extends JeffBase {
 
         if (currentAlliance == Alliance.RED){
             nearScorePose = nearScorePose.mirror();
+            farScorePose = farScorePose.mirror();
             endPose = endPose.mirror();
+            endPose2 = endPose2.mirror();
         }
 
         if (auto == Auto.NEAR) {
@@ -92,6 +95,16 @@ public class JeffAuto extends JeffBase {
 //                new LineToCommand(follower, AimAt(farScorePose, goalTarget)),
 //                new ShootAllCommand(scoring, vision),
                new LineToCommand(follower, endPose2)
+            ));
+        }
+        else if (auto == Auto.FAR9){
+            scheduler.schedule( new SequentialCommand(
+                new LineToCommand(follower, AimAt(farScorePose, goalTarget)),
+                new ShootAllCommand(scoring, vision),
+                new YummyArtifacts(scoring, follower, 3.0),
+                new LineToCommand(follower, AimAt(farScorePose, goalTarget)),
+                new ShootAllCommand(scoring, vision),
+                new YummyArtifacts(scoring, follower, 2.0)
             ));
         }
         else if (auto == Auto.TEST){
